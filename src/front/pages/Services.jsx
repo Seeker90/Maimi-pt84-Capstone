@@ -16,29 +16,8 @@ export const Services = () => {
     navigate(`/services/${categoryId}`);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/login');
-  };
-
   return (
     <div className="min-vh-100 bg-light">
-      {/* Header */}
-      <nav className="navbar navbar-light bg-white border-bottom border-dark border-2 px-4">
-        <div className="container-fluid">
-          <span className="navbar-brand border border-dark border-2 px-3 py-2 fw-bold">
-            Logo
-          </span>
-          <button 
-            className="btn btn-outline-dark px-4" 
-            onClick={handleLogout}
-          >
-            Logout
-          </button>
-        </div>
-      </nav>
-
-      {/* Main Content */}
       <main className="container py-5">
         <h1 className="text-center display-1 fw-light mb-5">Services</h1>
         
