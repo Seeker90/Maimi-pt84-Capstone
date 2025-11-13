@@ -22,25 +22,39 @@ export const Services = () => {
   };
 
   return (
-    <div className="services-page">
-      <header className="services-header">
-        <button className="logout-btn" onClick={handleLogout}>
-          Logout
-        </button>
-      </header>
+    <div className="min-vh-100 bg-light">
+      {/* Header */}
+      <nav className="navbar navbar-light bg-white border-bottom border-dark border-2 px-4">
+        <div className="container-fluid">
+          <span className="navbar-brand border border-dark border-2 px-3 py-2 fw-bold">
+            Logo
+          </span>
+          <button 
+            className="btn btn-outline-dark px-4" 
+            onClick={handleLogout}
+          >
+            Logout
+          </button>
+        </div>
+      </nav>
 
-      <main className="services-content">
-        <h1 className="services-title">Services</h1>
+      {/* Main Content */}
+      <main className="container py-5">
+        <h1 className="text-center display-1 fw-light mb-5">Services</h1>
         
-        <div className="services-categories">
+        <div className="row justify-content-center g-4 py-4">
           {serviceCategories.map((category) => (
-            <div
-              key={category.id}
-              className="category-card"
-              onClick={() => handleCategoryClick(category.id)}
-            >
-              <div className="category-icon">{category.icon}</div>
-              <p className="category-name">{category.name}</p>
+            <div key={category.id} className="col-auto">
+              <div
+                className="card category-card border-dark border-2 text-center"
+                onClick={() => handleCategoryClick(category.id)}
+                style={{ width: '150px', height: '150px', cursor: 'pointer' }}
+              >
+                <div className="card-body d-flex flex-column justify-content-center align-items-center">
+                  <div className="fs-1 mb-2">{category.icon}</div>
+                  <p className="card-text fw-medium mb-0">{category.name}</p>
+                </div>
+              </div>
             </div>
           ))}
         </div>
