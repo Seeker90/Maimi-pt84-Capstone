@@ -1,0 +1,42 @@
+// this page will accept a users email and password
+//create a function which will make a post request with users info in the request body
+// success means:
+// 1. the user is already registered and  in the database
+// 2. response will include a token from the backend that will be placed in the store and sessionstorage
+// 3. redirect user to private page
+
+//FAILURE means:
+// 1. Response will return a msg of "Bad username or password"
+// 2. msg will be displayed on /login page telling the user that the email/password combo does not match
+
+import { useState, useEffect } from "react";
+import {useNavigate, Link } from "react-router-dom";
+import useGlobalReducer from "../hooks/useGlobalReducer";
+
+export const Login = () => {
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const navigate = useNavigate();
+    const {store, dispatch} = useGlobalReducer();
+
+    //create useEffect to send the user to the /private route when
+    //login is successful and a token is received
+    return (
+        <>
+        <div className="login-page">
+            
+        </div>
+        </>
+    );
+}
+
+
+
+
+export const Login = () => {
+
+    retun (
+        <>
+        </>
+    )
+}
