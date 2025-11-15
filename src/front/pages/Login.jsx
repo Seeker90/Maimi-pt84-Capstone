@@ -21,9 +21,27 @@ export const Login = () => {
 
     //create useEffect to send the user to the /private route when
     //login is successful and a token is received
+   
+   
     return (
         <>
         <div className="login-page">
+            {
+            //create a ternary for the following:
+            //check the store fo a valid token
+            //if there is a token, welcome the user
+            //otherwise, direct the user to the login 
+            (store.token && store.token !== undefined && store.token !== "")
+                ?
+                <>
+                
+                <h1>Hello! you are logged in.</h1>
+                <div>{store.token}</div>
+                </>
+                :
+                <> 
+                 </>
+            }
             
         </div>
         </>
@@ -32,11 +50,3 @@ export const Login = () => {
 
 
 
-
-export const Login = () => {
-
-    retun (
-        <>
-        </>
-    )
-}
