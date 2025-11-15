@@ -8,8 +8,7 @@ export const Services = () => {
     { id: 'beauty', name: 'Beauty', icon: '💄' },
     { id: 'home-care', name: 'Home Care', icon: '🏠' },
     { id: 'pets', name: 'Pets', icon: '🐾' },
-    { id: 'vehicles', name: 'Vehicles', icon: '🚗' },
-    { id: 'others', name: 'Others', icon: '📦' }
+    { id: 'vehicles', name: 'Vehicles', icon: '🚗' }
   ];
 
   const handleCategoryClick = (categoryId) => {
