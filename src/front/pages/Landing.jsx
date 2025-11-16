@@ -1,39 +1,34 @@
 export const LandingPage = () => {
 	const services = [
 		{
-			icon: '🏁',
-			title: 'Professional Racing',
-			description: 'High-speed racing events and professional racing services for enthusiasts and professionals alike.',
+			icon: '🚗',
+			title: 'Vehicle',
+			description: 'Any services related to vehicles such as maintenence or cleaning',
 			gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
 		},
 		{
-			icon: '🧹',
-			title: 'Professional Cleaning',
-			description: 'Comprehensive cleaning services for residential and commercial properties with attention to detail.',
+			icon: '🏠',
+			title: 'Home Care',
+			description: 'Comprehensive cleaning services for your house, both insode and out.',
 			gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
 		},
 		{
-			icon: '🌿',
-			title: 'Landscaping Services',
-			description: 'Professional landscaping, garden maintenance, and outdoor design to enhance your property.',
+			icon: '🐾',
+			title: 'Pets',
+			description: 'Any services related to Pets such as Grooming, walks, etc.',
 			gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
 		},
 		{
 			icon: '💄',
-			title: 'Beauty & Cosmetics',
+			title: 'Beauty',
 			description: 'Premium beauty services and cosmetic treatments delivered by certified professionals.',
 			gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)'
 		},
-		{
-			icon: '⭐',
-			title: 'Premium Consulting',
-			description: 'Expert consultation services to help optimize and grow your business operations.',
-			gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)'
-		}
+		
 	];
 
 	const ServiceCard = ({ service }) => (
-		<div className="col-md-6 col-lg-4">
+		<div className="col-md-6 col-lg-6">
 			<div 
 				className="card h-100 border-0 shadow-sm"
 				style={{ 
@@ -109,8 +104,6 @@ export const LandingPage = () => {
 					</button>
 				</div>
 			</div>
-
-			{/* About Us Section */}
 			<section className="about-us py-5" style={{ backgroundColor: '#f8f9fa' }}>
 				<div className="container">
 					<div className="row align-items-center">
@@ -151,8 +144,6 @@ export const LandingPage = () => {
 					</div>
 				</div>
 			</section>
-
-			{/* Services Section */}
 			<section className="services py-5" style={{ backgroundColor: '#ffffff' }}>
 				<div className="container">
 					<div className="text-center mb-5">
@@ -167,18 +158,6 @@ export const LandingPage = () => {
 							<ServiceCard key={index} service={service} />
 						))}
 					</div>
-				</div>
-			</section>
-
-			{/* CTA Section */}
-			<section className="cta py-5" style={{ backgroundColor: '#667eea' }}>
-				<div className="container text-center">
-					<h3 className="display-6 fw-bold text-white mb-3">Ready to Get Started?</h3>
-					<p className="lead text-white-50 mb-4">
-						Contact us today to learn more about how we can serve you
-					</p>
-					<button className="btn btn-light btn-lg me-2">Contact Us</button>
-					<button className="btn btn-outline-light btn-lg">Get a Quote</button>
 				</div>
 			</section>
 		</>

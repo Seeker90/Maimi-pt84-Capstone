@@ -7,13 +7,12 @@ import {
 } from "react-router-dom";
 import { Layout } from "./pages/Layout";
 import { LandingPage } from "./pages/Landing";
-import { SignUp } from "./pages/Signup";
+import Signup from "./pages/Signup";
 import { Login } from "./pages/Login";
 import { Home } from "./pages/Home";
 import { Single } from "./pages/Single";
 import { Demo } from "./pages/Demo";
 import { Services } from "./pages/Services";
-import Signup from "./pages/Signup";
 
 export const router = createBrowserRouter(
     createRoutesFromElements(
