@@ -25,7 +25,7 @@ def create_token():
 
 
     access_token = create_access_token(identity=username)
-    return jsonify(access_token=access_token)
+    return jsonify({"msg": "successful", "token": access_token})
 
 
 

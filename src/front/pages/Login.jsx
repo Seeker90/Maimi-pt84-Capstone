@@ -12,6 +12,7 @@
 import { useState, useEffect } from "react";
 import {useNavigate, Link } from "react-router-dom";
 import useGlobalReducer from "../hooks/useGlobalReducer";
+import { UserAccess } from "../components/UserAccess";
 
 export const Login = () => {
     const [email, setEmail] = useState("");
@@ -26,6 +27,7 @@ export const Login = () => {
     return (
         <>
         <div className="login-page">
+    
             {
             //create a ternary for the following:
             //check the store fo a valid token
@@ -40,10 +42,11 @@ export const Login = () => {
                 </>
                 :
                 <> 
+                <UserAccess email={email} password={password} setEmail={setEmail} setPassword={setPassword} />
                  </>
             }
-            
-        </div>
+        
+             </div>
         </>
     );
 }
