@@ -6,13 +6,14 @@
 // 3. redirect user to private page
 
 //FAILURE means:
-// 1. Response will return a msg of "Bad username or password"
+// 1. Response will return a msg of "Bad username or password"   ^^^^^^^^DONE ABIEL
 // 2. msg will be displayed on /login page telling the user that the email/password combo does not match
 
 import { useState, useEffect } from "react";
 import {useNavigate, Link } from "react-router-dom";
 import useGlobalReducer from "../hooks/useGlobalReducer";
 import { UserAccess } from "../components/UserAccess";
+import { login } from "../fetch";
 
 export const Login = () => {
     const [email, setEmail] = useState("");
@@ -20,13 +21,22 @@ export const Login = () => {
     const navigate = useNavigate();
     const {store, dispatch} = useGlobalReducer();
 
+    const handleLoginClick = () => {
+        login(email, password, dispatch)
+    }
+
     //create useEffect to send the user to the /private route when
     //login is successful and a token is received
-   
+   useEffect(() => {
+    if (store.isLoginsuccessful)
+        navigate('/private');
+   }
+   , [store.isLoginsuccessful])
+
    
     return (
         <>
-        <div className="login-page">
+        <div className="login-page text-center mt-5">
     
             {
             //create a ternary for the following:
