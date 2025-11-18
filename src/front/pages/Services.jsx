@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom';
 import './Services.css';
-import PetsServicePage from './Pets';
 
 export const Services = () => {
   const navigate = useNavigate();
