@@ -6,7 +6,6 @@ export default function PetsServicePage() {
   const [sortByLocation, setSortByLocation] = useState('Location');
   const [sortByPrice, setSortByPrice] = useState('Price');
 
-  // Sample provider data
   const allProviders = [
     {
       id: 1,
