@@ -7,7 +7,7 @@ import {
 } from "react-router-dom";
 import { Layout } from "./pages/Layout";
 import { LandingPage } from "./pages/Landing";
-import Signup from "./pages/Signup";
+import  Signup  from "./pages/Signup";
 import { Login } from "./pages/Login";
 import { Home } from "./pages/Home";
 import { Single } from "./pages/Single";

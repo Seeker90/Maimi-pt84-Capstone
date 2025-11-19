@@ -21,7 +21,7 @@ export const Login = () => {
     const navigate = useNavigate();
     const {store, dispatch} = useGlobalReducer();
 
-    const handleLoginClick = () => {
+    const handleLogin = () => {
         login(email, password, dispatch)
     }
 

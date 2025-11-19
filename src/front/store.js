@@ -1,5 +1,11 @@
 export const initialStore=()=>{
-
+  return{
+    token: null,
+    isLoginSuccessful: false,
+    message: '',
+    isSignUpSuccessful: false,
+  }
+}
 
 export default function storeReducer(store, action = {}) {
   switch(action.type){
