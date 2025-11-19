@@ -20,7 +20,7 @@ const backendUrl = import.meta.env.VITE_BACKEND_URL
         console.log(data)
         if(response.ok){
             localStorage.setItem("token", data.token)
-            navigate("/")
+            navigate("/services")
             return data
         }
         return
