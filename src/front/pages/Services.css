@@ -1,5 +1,3 @@
-
-
 /* Custom hover effects for category cards */
 .homecare-category-card {
   transition: all 0.3s ease;
@@ -16,6 +14,11 @@
   background-color: white;
 }
 
+.pets-service-container {
+  min-height: 100vh;
+  background-color: white;
+}
+
 .homecare-service-content {
   padding: 2rem;
 }
@@ -26,12 +29,41 @@
   margin-bottom: 2rem;
 }
 
+.pets-service-content {
+  padding: 2rem;
+}
+
+.filter-controls {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
 .homecare-filter-select-wrapper {
   position: relative;
   flex: 1;
 }
 
+.filter-select-wrapper {
+  position: relative;
+  flex: 1;
+}
+
 .homecare-filter-select {
+  appearance: none;
+  padding: 0.5rem 1rem;
+  padding-right: 2rem;
+  border: 1px solid #d1d5db;
+  background-color: white;
+  font-size: 0.875rem;
+  width: 100%;
+  cursor: pointer;
+  background-image: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+.filter-select {
   appearance: none;
   padding: 0.5rem 1rem;
   padding-right: 2rem;
@@ -58,7 +90,26 @@
   font-size: 0.75rem;
 }
 
+.filter-select-wrapper:nth-child(2) .filter-select {
+  width: 100%;
+}
+
+.filter-select-arrow {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-size: 0.75rem;
+}
+
 .homecare-provider-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.provider-cards {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -69,12 +120,33 @@
   padding: 1.5rem;
 }
 
+.provider-card {
+  border: 1px solid #9ca3af;
+  padding: 1.5rem;
+}
+
 .homecare-provider-card-content {
   display: flex;
   gap: 1.5rem;
 }
 
+.provider-card-content {
+  display: flex;
+  gap: 1.5rem;
+}
+
 .homecare-provider-image-placeholder {
+  width: 6rem;
+  height: 6rem;
+  border: 2px solid #9ca3af;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f9fafb;
+}
+
+.provider-image-placeholder {
   width: 6rem;
   height: 6rem;
   border: 2px solid #9ca3af;
@@ -92,6 +164,13 @@
   transform: rotate(45deg);
 }
 
+.provider-image-inner {
+  width: 4rem;
+  height: 4rem;
+  border: 1px solid #9ca3af;
+  transform: rotate(45deg);
+}
+
 .homecare-provider-info {
   flex: 1;
 }
@@ -101,7 +180,22 @@
   color: #111827;
 }
 
+.provider-info {
+  flex: 1;
+}
+
+.provider-name {
+  font-weight: 600;
+  color: #111827;
+}
+
 .homecare-provider-service {
+  font-size: 0.875rem;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.provider-service {
   font-size: 0.875rem;
   color: #374151;
   margin-bottom: 0.5rem;
@@ -113,7 +207,23 @@
   margin-bottom: 1rem;
 }
 
+.provider-price {
+  font-size: 0.875rem;
+  color: #374151;
+  margin-bottom: 1rem;
+}
+
 .homecare-dates-available-btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid #111827;
+  font-size: 0.875rem;
+  font-weight: 500;
+  background-color: transparent;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.dates-available-btn {
   padding: 0.5rem 1rem;
   border: 1px solid #111827;
   font-size: 0.875rem;
@@ -138,13 +248,40 @@
   margin-bottom: 0.75rem;
 }
 
+.dates-available-btn:hover {
+  background-color: #f3f4f6;
+}
+
+.service-area {
+  width: 12rem;
+}
+
+.service-area-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.75rem;
+}
+
 .homecare-service-area-text {
   font-size: 0.875rem;
   color: #4b5563;
   margin-bottom: 0.5rem;
 }
 
+.service-area-text {
+  font-size: 0.875rem;
+  color: #4b5563;
+  margin-bottom: 0.5rem;
+}
+
 .homecare-contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.contact-info {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -159,6 +296,19 @@
 }
 
 .homecare-contact-input:read-only {
+  background-color: white;
+  color: #1f2937;
+}
+
+.contact-input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #9ca3af;
+  font-size: 0.75rem;
+  background-color: white;
+  cursor: default;
+}
+
+.contact-input:read-only {
   background-color: white;
   color: #1f2937;
 }
