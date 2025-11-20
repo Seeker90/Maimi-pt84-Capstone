@@ -49,7 +49,7 @@ export default function PetsServicePage() {
       service: 'womens Hairstyle',
       priceRange: '$50-$300',
       priceValue: 100,
-      state: 'TX'
+      state: 'TX',
       town: 'Austin',
       email: 'info@sheilabeauty.com',
       phone: '(498) 204-0321',
