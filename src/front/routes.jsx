@@ -13,9 +13,9 @@ import { Home } from "./pages/Home";
 import { Single } from "./pages/Single";
 import { Demo } from "./pages/Demo";
 import { Services } from "./pages/Services";
-import { Private } from "./pages/Private";
 import PetsServicePage from "./pages/Pets";
 import VehiclesServicePage from "./pages/Vehicles";
+import { ProviderDashboard } from "./pages/ProviderDashboard";
 
 export const router = createBrowserRouter(
     createRoutesFromElements(
@@ -39,7 +39,7 @@ export const router = createBrowserRouter(
         <Route path="/services/pets" element={<PetsServicePage /> } />
         <Route path="/services/vehicles" element={<VehiclesServicePage /> } />
         <Route path="/signup" element={<Signup />} />
-        <Route pathe="/private" element={<Private />} />
+        <Route path="/provider-dashboard" element={<ProviderDashboard />} />
       </Route>
     )
 );

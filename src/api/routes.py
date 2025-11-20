@@ -11,7 +11,6 @@ from flask_jwt_extended import jwt_required
 
 api = Blueprint('api', __name__)
 
-# Allow CORS requests to this API
 CORS(api)
 
 
@@ -19,15 +18,30 @@ CORS(api)
 def create_token():
     username = request.json.get("username", None)
     password = request.json.get("password", None)
-    user = User.query.filter_by(email = username, password = password).first()
+    role = request.json.get("role", None)
+
+    if not username or not password or not role:
+        return jsonify({"message": "Username, password, and role are required"}), 400
+
+    user = User.query.filter_by(email=username).first()
 
     if user is None:
-        return jsonify({"msg": "Bad username or password"}), 401
+        return jsonify({"message": "Invalid credentials"}), 401
+    
+    if user.password != password:
+        return jsonify({"message": "Invalid credentials"}), 401
+    
+    if user.role != role:
+        return jsonify({"message": f"You are not registered as a {role}"}), 403
 
-
-    access_token = create_access_token(identity=user.id)
-    return jsonify({"msg": "successful", "token": access_token})
-
+    access_token = create_access_token(identity={"id": user.id, "role": user.role})
+    
+    return jsonify({
+        "message": "Login successful", 
+        "token": access_token,
+        "role": user.role,
+        "user_id": user.id
+    }), 200
 
 
 @api.route('/signup', methods=['POST'])
@@ -39,15 +53,20 @@ def signup():
     password = data.get('password')
     role = data.get('role')
 
-    # check if email exists
-    if User.query.filter_by(email=email).first():
-        return jsonify({"msg": "Email already exists"}), 400
 
-    # create user
+    if not all([full_name, email, password, role]):
+        return jsonify({"message": "All fields are required"}), 400
+
+    if role not in ['customer', 'provider']:
+        return jsonify({"message": "Role must be 'customer' or 'provider'"}), 400
+
+    if User.query.filter_by(email=email).first():
+        return jsonify({"message": "Email already exists"}), 400
+
     new_user = User(
         full_name=full_name,
         email=email,
-        password=password, 
+        password=password,
         role=role,
         is_active=True
     )
@@ -55,5 +74,17 @@ def signup():
     db.session.add(new_user)
     db.session.commit()
 
-    return jsonify({"msg": "User created successfully!"}), 200
+    return jsonify({"message": "User created successfully!"}), 201
 
+@api.route("/protected", methods=["GET"])
+@jwt_required()
+def protected():
+    current_user = get_jwt_identity()
+    user_id = current_user["id"]
+    user_role = current_user["role"]
+    
+    return jsonify({
+        "message": "Access granted",
+        "user_id": user_id,
+        "role": user_role
+    }), 200

@@ -81,7 +81,7 @@ export default function VehiclesServicePage() {
   return (
     <>
    <div className="bg-light">
-      <main className="container py-5">
+      <main className="vehicles-container py-5">
         <h1 className="text-center display-1 fw-light mb-5">Vehicles</h1>
         
         <div className="row justify-content-center g-4 py-4">
