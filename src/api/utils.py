@@ -1,4 +1,7 @@
-from flask import jsonify, url_for
+from flask import jsonify
+from functools import wraps
+from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
+from api.models import User
 
 class APIException(Exception):
     status_code = 400
@@ -26,7 +29,7 @@ def generate_sitemap(app):
         # Filter out rules we can't navigate to in a browser
         # and rules that require parameters
         if "GET" in rule.methods and has_no_empty_params(rule):
-            url = url_for(rule.endpoint, **(rule.defaults or {}))
+            url = str(rule)
             if "/admin/" not in url:
                 links.append(url)
 
@@ -36,6 +39,35 @@ def generate_sitemap(app):
         <img style="max-height: 80px" src='https://storage.googleapis.com/breathecode/boilerplates/rigo-baby.jpeg' />
         <h1>Rigo welcomes you to your API!!</h1>
         <p>API HOST: <script>document.write('<input style="padding: 5px; width: 300px" type="text" value="'+window.location.href+'" />');</script></p>
-        <p>Start working on your project by following the <a href="https://start.4geeksacademy.com/starters/full-stack" target="_blank">Quick Start</a></p>
-        <p>Remember to specify a real endpoint path like: </p>
+        <p>Start working on your project using the <a href="/admin/">Admin</a></p>
         <ul style="text-align: left;">"""+links_html+"</ul></div>"
+
+def provider_required():
+    def wrapper(fn):
+        @wraps(fn)
+        def decorator(*args, **kwargs):
+            verify_jwt_in_request()
+            user_id = get_jwt_identity()
+            user = User.query.get(user_id)
+            
+            if not user or user.role != 'provider':
+                return jsonify({'message': 'Provider access required'}), 403
+            
+            return fn(*args, **kwargs)
+        return decorator
+    return wrapper
+
+def customer_required():
+    def wrapper(fn):
+        @wraps(fn)
+        def decorator(*args, **kwargs):
+            verify_jwt_in_request()
+            user_id = get_jwt_identity()
+            user = User.query.get(user_id)
+            
+            if not user or user.role != 'customer':
+                return jsonify({'message': 'Customer access required'}), 403
+            
+            return fn(*args, **kwargs)
+        return decorator
+    return wrapper
