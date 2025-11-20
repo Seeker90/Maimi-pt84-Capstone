@@ -13,11 +13,8 @@ import { Home } from "./pages/Home";
 import { Single } from "./pages/Single";
 import { Demo } from "./pages/Demo";
 import { Services } from "./pages/Services";
-<<<<<<< HEAD
 import Homecare from "./pages/Homecare";
-=======
 import { Private } from "./pages/Private";
->>>>>>> main
 import PetsServicePage from "./pages/Pets";
 import VehiclesServicePage from "./pages/Vehicles";
 
