@@ -1,60 +1,50 @@
 import { useNavigate } from "react-router-dom"
 import { useState } from "react"
+import { authAPI } from "../fetch"
 
-export const UserAccess = ({email, password, setEmail, setPassword}) => {
+export const UserAccess = ({ email, password, setEmail, setPassword }) => {
     const navigate = useNavigate()
-    const backendUrl = import.meta.env.VITE_BACKEND_URL
     const [role, setRole] = useState("customer")
     const [error, setError] = useState("")
     const [isLoading, setIsLoading] = useState(false)
 
     const handleLogin = async() => {
-        setError("")
-        setIsLoading(true)
+    setError("")
+    setIsLoading(true)
+    
+    try {
+        const response = await authAPI.login(email, password, role)
+        const data = await response.json()
         
-        try {
-            const response = await fetch(backendUrl + "/api/login", {
-                method: "POST", 
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    "username": email, 
-                    "password": password,
-                    "role": role
-                })
-            })
-            const data = await response.json()
+        if(response.ok){
+            sessionStorage.setItem("token", data.token)
+            sessionStorage.setItem("role", role)
             
-            if(response.ok){
-                // Store in both localStorage and sessionStorage
-                const storageData = {
-                    token: data.token,
-                    role: role,
-                    email: email,
-                    loginTime: new Date().toISOString()
-                }
-                
-                localStorage.setItem("token", data.token)
-                localStorage.setItem("role", role)
-                sessionStorage.setItem("userSession", JSON.stringify(storageData))
-                
-                if(role === "provider"){
-                    navigate("/provider-dashboard")
-                } else {
-                    navigate("/services")
-                }
-                return data
-            } else {
-                setError(data.message || "Login failed. Please check your credentials.")
+            const storageData = {
+                token: data.token,
+                role: role,
+                email: email,
+                loginTime: new Date().toISOString()
             }
-        } catch(error) {
-            console.error("Network error:", error)
-            setError("Unable to connect to server")
-        } finally {
-            setIsLoading(false)
+            
+            sessionStorage.setItem("userSession", JSON.stringify(storageData))
+            
+            if(role === "provider"){
+                navigate("/provider-dashboard")
+            } else {
+                navigate("/services")
+            }
+            return data
+        } else {
+            setError(data.message || "Login failed. Please check your credentials.")
         }
+    } catch(error) {
+        console.error("Network error:", error)
+        setError("Unable to connect to server")
+    } finally {
+        setIsLoading(false)
     }
+}
 
     const handleSubmit = (e) => {
         e.preventDefault()
@@ -70,7 +60,7 @@ export const UserAccess = ({email, password, setEmail, setPassword}) => {
                             <div className="card-body p-4 p-md-5">
                                 <h1 className="text-center mb-2 fw-bold">Welcome Back</h1>
                                 <p className="text-center text-muted mb-4">Sign in to your account</p>
-                                
+
                                 <form onSubmit={handleSubmit}>
                                     <div className="mb-4">
                                         <label className="form-label fw-semibold">Login as:</label>
@@ -138,15 +128,19 @@ export const UserAccess = ({email, password, setEmail, setPassword}) => {
                                             <div>{error}</div>
                                         </div>
                                     )}
-                                
-                                    <button 
+
+                                    <button
                                         type="submit"
                                         className="btn btn-primary btn-lg w-100 mt-3"
                                         disabled={isLoading}
                                     >
                                         {isLoading ? (
                                             <>
-                                                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                                <span
+                                                    className="spinner-border spinner-border-sm me-2"
+                                                    role="status"
+                                                    aria-hidden="true"
+                                                ></span>
                                                 Logging in...
                                             </>
                                         ) : "Login"}

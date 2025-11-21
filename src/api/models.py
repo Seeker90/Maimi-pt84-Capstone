@@ -127,15 +127,16 @@ class Booking(db.Model):
     customer_id: Mapped[int] = mapped_column(ForeignKey('customers.id'), nullable=False)
     provider_id: Mapped[int] = mapped_column(ForeignKey('providers.id'), nullable=False)
     service_id: Mapped[int] = mapped_column(ForeignKey('services.id'), nullable=False)
-    booking_date: Mapped[datetime] = mapped_column(Date, nullable=False)
-    booking_time: Mapped[datetime] = mapped_column(Time, nullable=False)
+
+    booking_date: Mapped[datetime.date] = mapped_column(Date, nullable=False)
+    booking_time: Mapped[datetime.time] = mapped_column(Time, nullable=False)
+
     status: Mapped[str] = mapped_column(String(20), default='pending')
     total_price: Mapped[float] = mapped_column(Float, nullable=False)
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # Relationships
     customer: Mapped["Customer"] = relationship(back_populates="bookings")
     provider: Mapped["Provider"] = relationship(back_populates="bookings")
     service: Mapped["Service"] = relationship(back_populates="bookings")

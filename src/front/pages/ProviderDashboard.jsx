@@ -1,76 +1,125 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
+import { providerAPI } from "../fetch"
+import "./ProviderDashboard.css"
 
 export const ProviderDashboard = () => {
     const navigate = useNavigate()
-    const backendUrl = import.meta.env.VITE_BACKEND_URL
     const [activeTab, setActiveTab] = useState("overview")
     const [providerData, setProviderData] = useState(null)
     const [services, setServices] = useState([])
     const [bookings, setBookings] = useState([])
     const [isLoading, setIsLoading] = useState(true)
+    const [showServiceModal, setShowServiceModal] = useState(false)
+    const [newService, setNewService] = useState({
+        name: '',
+        description: '',
+        category: 'pets',
+        price: '',
+        duration: ''
+    })
 
     useEffect(() => {
-        const token = localStorage.getItem("token")
-        const role = localStorage.getItem("role")
+    const token = sessionStorage.getItem("token")
+    const role = sessionStorage.getItem("role")
+    
+    if (!token || role !== "provider") {
+        navigate("/login")
+        return
+    }
+    
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]))
+        const now = Math.floor(Date.now() / 1000)
         
-        if (!token || role !== "provider") {
+        if (now > payload.exp) {
+            console.log("Token expired, redirecting to login")
+            sessionStorage.clear()
             navigate("/login")
             return
         }
-        
-        fetchDashboardData()
-    }, [])
+    } catch (error) {
+        console.error("Error checking token:", error)
+        sessionStorage.clear()
+        navigate("/login")
+        return
+    }
+    
+    fetchDashboardData()
+}, [])
 
     const fetchDashboardData = async () => {
         setIsLoading(true)
         try {
-            const token = localStorage.getItem("token")
-          
-            const profileResponse = await fetch(`${backendUrl}/api/provider/profile`, {
-                headers: {
-                    "Authorization": `Bearer ${token}`
-                }
-            })
-            
-            if (profileResponse.ok) {
-                const profileData = await profileResponse.json()
-                setProviderData(profileData)
-            }
-            const servicesResponse = await fetch(`${backendUrl}/api/provider/services`, {
-                headers: {
-                    "Authorization": `Bearer ${token}`
-                }
-            })
-            
-            if (servicesResponse.ok) {
-                const servicesData = await servicesResponse.json()
-                setServices(servicesData)
-            }
-            
-            const bookingsResponse = await fetch(`${backendUrl}/api/provider/bookings`, {
-                headers: {
-                    "Authorization": `Bearer ${token}`
-                }
-            })
-            
-            if (bookingsResponse.ok) {
-                const bookingsData = await bookingsResponse.json()
-                setBookings(bookingsData)
-            }
-            
+            const profileData = await providerAPI.getProfile()
+            setProviderData(profileData)
+
+            const servicesData = await providerAPI.getServices()
+            setServices(servicesData)
+
+            const bookingsData = await providerAPI.getBookings()
+            setBookings(bookingsData)
+
         } catch (error) {
             console.error("Error fetching dashboard data:", error)
+            if (error.message.includes('401') || error.message.includes('403')) {
+                navigate("/login")
+            }
         } finally {
             setIsLoading(false)
         }
     }
 
-    const handleLogout = () => {
-        localStorage.removeItem("token")
-        localStorage.removeItem("role")
-        sessionStorage.removeItem("userSession")
-        navigate("/login")
+    const handleAddService = async (e) => {
+    e.preventDefault()
+    
+    try {
+        const serviceData = {
+            name: newService.name,
+            description: newService.description,
+            category: newService.category,
+            price: parseFloat(newService.price),
+            duration: newService.duration ? parseInt(newService.duration) : null
+        }
+
+        console.log('Sending service data:', serviceData)
+
+        const response = await providerAPI.createService(serviceData)
+        
+        console.log('Full response:', response)
+        if (response.service) {
+            setServices([...services, response.service])
+            setShowServiceModal(false)
+            setNewService({
+                name: '',
+                description: '',
+                category: 'pets',
+                price: '',
+                duration: ''
+            })
+            alert('Service added successfully!')
+        } else {
+            throw new Error('Invalid response format')
+        }
+    } catch (error) {
+        console.error("Full error:", error)
+        alert(error.message || 'Error adding service')
+    }
+}
+
+    const handleDeleteService = async (serviceId) => {
+        if (!window.confirm('Are you sure you want to delete this service?')) {
+            return
+        }
+
+        try {
+            await providerAPI.deleteService(serviceId)
+            setServices(services.filter(service => service.id !== serviceId))
+            alert('Service deleted successfully!')
+        } catch (error) {
+            console.error("Error deleting service:", error)
+            alert(error.message || 'Failed to delete service')
+        }
     }
 
     const getServiceIcon = (category) => {
@@ -246,7 +295,10 @@ export const ProviderDashboard = () => {
                             <div>
                                 <div className="d-flex justify-content-between align-items-center mb-4">
                                     <h2>My Services</h2>
-                                    <button className="btn btn-primary">
+                                    <button 
+                                        className="btn btn-primary"
+                                        onClick={() => setShowServiceModal(true)}
+                                    >
                                         + Add New Service
                                     </button>
                                 </div>
@@ -255,7 +307,12 @@ export const ProviderDashboard = () => {
                                     <div className="card text-center p-5">
                                         <h4>No services yet</h4>
                                         <p className="text-muted">Start by adding your first service</p>
-                                        <button className="btn btn-primary">Add Service</button>
+                                        <button 
+                                            className="btn btn-primary"
+                                            onClick={() => setShowServiceModal(true)}
+                                        >
+                                            Add Service
+                                        </button>
                                     </div>
                                 ) : (
                                     <div className="row g-3">
@@ -279,7 +336,12 @@ export const ProviderDashboard = () => {
                                                             </span>
                                                             <div className="btn-group btn-group-sm">
                                                                 <button className="btn btn-outline-primary">Edit</button>
-                                                                <button className="btn btn-outline-danger">Delete</button>
+                                                                <button 
+                                                                    className="btn btn-outline-danger"
+                                                                    onClick={() => handleDeleteService(service.id)}
+                                                                >
+                                                                    Delete
+                                                                </button>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -479,6 +541,92 @@ export const ProviderDashboard = () => {
                                                         Save Changes
                                                     </button>
                                                 </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {showServiceModal && (
+                            <div className="modal show d-block" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
+                                <div className="modal-dialog">
+                                    <div className="modal-content">
+                                        <div className="modal-header">
+                                            <h5 className="modal-title">Add New Service</h5>
+                                            <button 
+                                                type="button" 
+                                                className="btn-close"
+                                                onClick={() => setShowServiceModal(false)}
+                                            ></button>
+                                        </div>
+                                        <form onSubmit={handleAddService}>
+                                            <div className="modal-body">
+                                                <div className="mb-3">
+                                                    <label className="form-label">Service Name *</label>
+                                                    <input
+                                                        type="text"
+                                                        className="form-control"
+                                                        value={newService.name}
+                                                        onChange={(e) => setNewService({...newService, name: e.target.value})}
+                                                        required
+                                                    />
+                                                </div>
+                                                <div className="mb-3">
+                                                    <label className="form-label">Description</label>
+                                                    <textarea
+                                                        className="form-control"
+                                                        rows="3"
+                                                        value={newService.description}
+                                                        onChange={(e) => setNewService({...newService, description: e.target.value})}
+                                                    ></textarea>
+                                                </div>
+                                                <div className="mb-3">
+                                                    <label className="form-label">Category *</label>
+                                                    <select
+                                                        className="form-select"
+                                                        value={newService.category}
+                                                        onChange={(e) => setNewService({...newService, category: e.target.value})}
+                                                        required
+                                                    >
+                                                        <option value="pets">🐾 Pet Services</option>
+                                                        <option value="beauty">💄 Beauty Services</option>
+                                                        <option value="vehicles">🚗 Vehicle Services</option>
+                                                        <option value="home">🏠 Home Care Services</option>
+                                                    </select>
+                                                </div>
+                                                <div className="mb-3">
+                                                    <label className="form-label">Price ($) *</label>
+                                                    <input
+                                                        type="number"
+                                                        step="0.01"
+                                                        className="form-control"
+                                                        value={newService.price}
+                                                        onChange={(e) => setNewService({...newService, price: e.target.value})}
+                                                        required
+                                                    />
+                                                </div>
+                                                <div className="mb-3">
+                                                    <label className="form-label">Duration (minutes)</label>
+                                                    <input
+                                                        type="number"
+                                                        className="form-control"
+                                                        value={newService.duration}
+                                                        onChange={(e) => setNewService({...newService, duration: e.target.value})}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="modal-footer">
+                                                <button 
+                                                    type="button" 
+                                                    className="btn btn-secondary"
+                                                    onClick={() => setShowServiceModal(false)}
+                                                >
+                                                    Cancel
+                                                </button>
+                                                <button type="submit" className="btn btn-primary">
+                                                    Add Service
+                                                </button>
                                             </div>
                                         </form>
                                     </div>
