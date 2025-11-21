@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import './Services.css';
+import './../../lib/Services.css';
 
 export default function Homecare() {
   const [selectedCategory, setSelectedCategory] = useState('All Categories');

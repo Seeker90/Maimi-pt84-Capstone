@@ -17,6 +17,8 @@ export const UserAccess = ({ email, password, setEmail, setPassword }) => {
         const data = await response.json()
         
         if(response.ok){
+            // Store in both localStorage (for navbar) and sessionStorage (for your app)
+            localStorage.setItem("token", data.token)
             sessionStorage.setItem("token", data.token)
             sessionStorage.setItem("role", role)
             
@@ -28,6 +30,9 @@ export const UserAccess = ({ email, password, setEmail, setPassword }) => {
             }
             
             sessionStorage.setItem("userSession", JSON.stringify(storageData))
+            
+            // Dispatch storage event to update navbar in same tab
+            window.dispatchEvent(new Event('storage'))
             
             if(role === "provider"){
                 navigate("/provider-dashboard")

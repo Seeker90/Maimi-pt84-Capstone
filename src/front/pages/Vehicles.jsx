@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { customerAPI } from '../fetch';
-import './Services.css';
+import './../../lib/Services.css';
 
 export default function VehiclesServicePage() {
   const navigate = useNavigate();

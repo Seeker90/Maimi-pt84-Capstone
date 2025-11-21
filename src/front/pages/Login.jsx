@@ -28,10 +28,15 @@ export const Login = () => {
     //create useEffect to send the user to the /private route when
     //login is successful and a token is received
    useEffect(() => {
-    if (store.isLoginsuccessful)
+    if (store.isLoginsuccessful && store.token) {
+        // Store token in localStorage
+        localStorage.setItem('token', store.token);
+        // Dispatch storage event to update navbar in same tab
+        window.dispatchEvent(new Event('storage'));
         navigate('/private');
+    }
    }
-   , [store.isLoginsuccessful])
+   , [store.isLoginsuccessful, store.token, navigate])
 
    
     return (
@@ -60,6 +65,3 @@ export const Login = () => {
         </>
     );
 }
-
-
-
