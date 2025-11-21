@@ -39,6 +39,8 @@ class Provider(db.Model):
     city: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     state: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     zip_code: Mapped[Optional[str]] = mapped_column(String(10), nullable=True)
+    latitude: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    longitude: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     profile_image: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     rating: Mapped[float] = mapped_column(Float, default=0.0)
     total_reviews: Mapped[int] = mapped_column(Integer, default=0)
@@ -62,6 +64,8 @@ class Provider(db.Model):
             'city': self.city,
             'state': self.state,
             'zipCode': self.zip_code,
+            'latitude': self.latitude,
+            'longitude': self.longitude, 
             'profileImage': self.profile_image,
             'rating': self.rating,
             'totalReviews': self.total_reviews,

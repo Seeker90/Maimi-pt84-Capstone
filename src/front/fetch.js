@@ -85,6 +85,16 @@ export const providerAPI = {
         return response.json();
     },
 
+    updateLocation: async (locationData) => {
+        const response = await fetch(`${API_URL}/api/provider/location`, {
+            method: "PUT",
+            headers: getAuthHeaders(),
+            body: JSON.stringify(locationData)
+        });
+        if (!response.ok) throw new Error('Failed to update location');
+        return response.json();
+    },
+
     updateProfile: async (profileData) => {
         const response = await fetch(`${API_URL}/api/provider/profile`, {
             method: "PUT",
@@ -184,6 +194,7 @@ export const providerAPI = {
 };
 
 export const customerAPI = {
+
     getAllServices: async (category = null) => {
         let url = `${API_URL}/api/services`
         if (category) {
@@ -195,15 +206,102 @@ export const customerAPI = {
         return response.json()
     },
 
-    getProviderServices: async (providerId) => {
-        const response = await fetch(`${API_URL}/api/providers/${providerId}/services`)
-        if (!response.ok) throw new Error('Failed to fetch provider services')
-        return response.json()
+    geocodeAddress: async (address) => {
+        const MAPBOX_API_KEY = import.meta.env.VITE_MAPBOX_API_KEY;
+        
+        if (!MAPBOX_API_KEY) {
+            throw new Error('MapBox API key not configured');
+        }
+        
+        const response = await fetch(
+            `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${MAPBOX_API_KEY}&limit=1`
+        );
+        
+        const data = await response.json();
+        
+        if (data.features && data.features.length > 0) {
+            const [longitude, latitude] = data.features[0].center;
+            return {
+                latitude: latitude,
+                longitude: longitude,
+                formattedAddress: data.features[0].place_name
+            };
+        }
+        
+        throw new Error('Address not found');
     },
 
-    getProviderDetails: async (providerId) => {
-        const response = await fetch(`${API_URL}/api/providers/${providerId}`)
-        if (!response.ok) throw new Error('Failed to fetch provider details')
-        return response.json()
+    getCurrentLocation: () => {
+        return new Promise((resolve, reject) => {
+            if (!navigator.geolocation) {
+                reject(new Error('Geolocation is not supported by your browser'));
+            } else {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        resolve({
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude
+                        });
+                    },
+                    (error) => {
+                        let errorMessage = 'Unable to get location';
+                        switch(error.code) {
+                            case error.PERMISSION_DENIED:
+                                errorMessage = 'Location permission denied. Please enable location access.';
+                                break;
+                            case error.POSITION_UNAVAILABLE:
+                                errorMessage = 'Location information unavailable.';
+                                break;
+                            case error.TIMEOUT:
+                                errorMessage = 'Location request timed out.';
+                                break;
+                        }
+                        reject(new Error(errorMessage));
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 5000,
+                        maximumAge: 0
+                    }
+                );
+            }
+        });
+    },
+
+    getNearbyServices: async (lat, lon, radius = 25, category = null) => {
+        let url = `${API_URL}/api/services/nearby?lat=${lat}&lon=${lon}&radius=${radius}`;
+        if (category) {
+            url += `&category=${category}`;
+        }
+        
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Failed to fetch nearby services');
+        return response.json();
+    },
+
+    reverseGeocode: async (lat, lon) => {
+        const MAPBOX_API_KEY = import.meta.env.VITE_MAPBOX_API_KEY;
+        
+        if (!MAPBOX_API_KEY) {
+            throw new Error('MapBox API key not configured');
+        }
+        
+        const response = await fetch(
+            `https://api.mapbox.com/geocoding/v5/mapbox.places/${lon},${lat}.json?access_token=${MAPBOX_API_KEY}&limit=1`
+        );
+        
+        const data = await response.json();
+        
+        if (data.features && data.features.length > 0) {
+            const feature = data.features[0];
+            return {
+                formattedAddress: feature.place_name,
+                city: feature.context?.find(c => c.id.includes('place'))?.text,
+                state: feature.context?.find(c => c.id.includes('region'))?.short_code?.split('-')[1],
+                zipCode: feature.context?.find(c => c.id.includes('postcode'))?.text
+            };
+        }
+        
+        throw new Error('Location not found');
     }
-}
+};
