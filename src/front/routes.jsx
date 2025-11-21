@@ -16,6 +16,8 @@ import { Services } from "./pages/Services";
 import PetsServicePage from "./pages/Pets";
 import VehiclesServicePage from "./pages/Vehicles";
 import { ProviderDashboard } from "./pages/ProviderDashboard";
+import Homecare from "./pages/Homecare";
+import BeautyServicePage from "./pages/Beauty";
 
 export const router = createBrowserRouter(
     createRoutesFromElements(
@@ -29,14 +31,16 @@ export const router = createBrowserRouter(
         <Route path="/" element={<Layout />} errorElement={<h1>Not found!</h1>}>
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/landing" element={<LandingPage />} />
             <Route path="/single/:theId" element={<Single />} />  {/* Dynamic route for single items */}
-            <Route path="/demo" element={<Demo />} />
             <Route path="/services" element={<Services />} />
             <Route path="/services/pets" element={<PetsServicePage />} />
             <Route path="/services/vehicles" element={<VehiclesServicePage />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/provider-dashboard" element={<ProviderDashboard />} />
+            <Route path="/services/beauty" element={<BeautyServicePage /> } />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/services/home-care" element={<Homecare /> } />
         </Route>
+    
     )
 );
