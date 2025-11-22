@@ -10,6 +10,7 @@ export default function VehiclesServicePage() {
   const [sortByPrice, setSortByPrice] = useState('Price');
   const [services, setServices] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchMode, setSearchMode] = useState('all');
 
   const serviceCategories = [
     { id: 'beauty', name: 'Beauty', icon: '💄' },
@@ -45,7 +46,7 @@ export default function VehiclesServicePage() {
     }
 
     fetchServices();
-  }, []);
+  }, [navigate]);
 
   const fetchServices = async () => {
     setIsLoading(true);
@@ -63,6 +64,17 @@ export default function VehiclesServicePage() {
     navigate(`/services/${categoryId}`);
   };
 
+  const handleNearbySearchResults = (results) => {
+    setServices(results);
+    setSearchMode('nearby');
+    setSortByLocation('Location');
+  };
+
+  const handleShowAll = async () => {
+    setSearchMode('all');
+    await fetchServices();
+  };
+
   const providers = useMemo(() => {
     let filtered = services;
 
@@ -74,14 +86,16 @@ export default function VehiclesServicePage() {
       );
     }
 
-    if (sortByLocation === 'Nearest First') {
-      filtered = [...filtered].sort((a, b) => 
-        (a.provider.city || '').localeCompare(b.provider.city || '')
-      );
-    } else if (sortByLocation === 'Farthest First') {
-      filtered = [...filtered].sort((a, b) => 
-        (b.provider.city || '').localeCompare(a.provider.city || '')
-      );
+    if (searchMode !== 'nearby') {
+      if (sortByLocation === 'Nearest First') {
+        filtered = [...filtered].sort((a, b) => 
+          (a.provider.city || '').localeCompare(b.provider.city || '')
+        );
+      } else if (sortByLocation === 'Farthest First') {
+        filtered = [...filtered].sort((a, b) => 
+          (b.provider.city || '').localeCompare(a.provider.city || '')
+        );
+      }
     }
 
     if (sortByPrice === 'Low to High') {
@@ -91,7 +105,7 @@ export default function VehiclesServicePage() {
     }
 
     return filtered;
-  }, [services, selectedCategory, sortByLocation, sortByPrice]);
+  }, [services, selectedCategory, sortByLocation, sortByPrice, searchMode]);
 
   if (isLoading) {
     return (
@@ -130,6 +144,27 @@ export default function VehiclesServicePage() {
    
       <div className="vehicles-service-container">
         <div className="vehicles-service-content">
+          <div className="container mb-4">
+            <NearbySearch 
+              onSearchResults={handleNearbySearchResults}
+              category="vehicles"
+            />
+            
+            {searchMode === 'nearby' && (
+              <div className="text-center mb-3">
+                <button 
+                  className="btn btn-outline-secondary"
+                  onClick={handleShowAll}
+                >
+                  ← Show All Services
+                </button>
+                <p className="text-muted mt-2">
+                  Showing {services.length} service(s) near you
+                </p>
+              </div>
+            )}
+          </div>
+
           <div className="filter-controls">
             <div className="filter-select-wrapper">
               <select
@@ -150,6 +185,7 @@ export default function VehiclesServicePage() {
                 value={sortByLocation}
                 onChange={(e) => setSortByLocation(e.target.value)}
                 className="filter-select"
+                disabled={searchMode === 'nearby'}
               >
                 <option>Location</option>
                 <option>Nearest First</option>
@@ -175,8 +211,12 @@ export default function VehiclesServicePage() {
           <div className="provider-cards">
             {providers.length === 0 ? (
               <div className="text-center p-5">
-                <h3>No services available yet</h3>
-                <p className="text-muted">Check back later for vehicle services in your area</p>
+                <h3>No services available</h3>
+                <p className="text-muted">
+                  {searchMode === 'nearby' 
+                    ? 'Try expanding your search radius or searching in a different location'
+                    : 'Check back later for vehicle services in your area'}
+                </p>
               </div>
             ) : (
               providers.map((service) => (
@@ -187,6 +227,12 @@ export default function VehiclesServicePage() {
                     </div>
 
                     <div className="provider-info">
+                      {searchMode === 'nearby' && service.provider.distance && (
+                        <span className="badge bg-success mb-2">
+                          📍 {service.provider.distance} miles away
+                        </span>
+                      )}
+                      
                       <h3 className="provider-name">
                         Company Name: {service.provider.businessName || service.provider.name}
                       </h3>

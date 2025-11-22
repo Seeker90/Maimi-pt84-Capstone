@@ -1,6 +1,3 @@
-"""
-Bootstraps the API: server start, DB load, and endpoint registration.
-"""
 from flask import Flask, request, jsonify, Blueprint
 from api.models import db, User, Provider, Customer, Service, Booking
 from api.utils import (
@@ -17,6 +14,7 @@ from flask_jwt_extended import (
 )
 from datetime import datetime, timedelta
 from sqlalchemy import func
+from math import radians, cos, sin, asin, sqrt
 
 api = Blueprint("api", __name__)
 CORS(api)
@@ -144,6 +142,38 @@ def update_provider_profile():
         "provider": provider.serialize()
     }), 200
 
+@api.route('/provider/location', methods=['PUT'])
+@jwt_required()
+@provider_required()
+def update_provider_location():
+    user_id_str = get_jwt_identity()
+    user_id = int(user_id_str)
+    provider = Provider.query.filter_by(user_id=user_id).first()
+    
+    if not provider:
+        return jsonify({'message': 'Provider profile not found'}), 404
+    
+    data = request.get_json()
+    
+    if 'latitude' in data and 'longitude' in data:
+        provider.latitude = data['latitude']
+        provider.longitude = data['longitude']
+    if 'address' in data:
+        provider.address = data['address']
+    if 'city' in data:
+        provider.city = data['city']
+    if 'state' in data:
+        provider.state = data['state']
+    if 'zipCode' in data:
+        provider.zip_code = data['zipCode']
+    
+    db.session.commit()
+    
+    return jsonify({
+        'message': 'Location updated successfully',
+        'provider': provider.serialize()
+    }), 200
+
 @api.route("/provider/services", methods=["GET"])
 @jwt_required()
 @provider_required()
@@ -154,7 +184,6 @@ def get_provider_services():
 
     services = Service.query.filter_by(provider_id=provider.id).all()
     return jsonify([s.serialize() for s in services]), 200
-
 
 @api.route('/provider/services', methods=['POST'])
 @jwt_required()
@@ -388,3 +417,65 @@ def get_provider_services_public(provider_id):
     services = Service.query.filter_by(provider_id=provider_id, is_active=True).all()
     
     return jsonify([service.serialize() for service in services]), 200
+
+def haversine_distance(lat1, lon1, lat2, lon2):
+    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+    
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+    c = 2 * asin(sqrt(a))
+    
+    r = 3956
+    
+    return c * r
+
+@api.route('/services/nearby', methods=['GET'])
+def get_nearby_services():
+
+    try:
+        user_lat = float(request.args.get('lat'))
+        user_lon = float(request.args.get('lon'))
+    except (TypeError, ValueError):
+        return jsonify({'message': 'Valid latitude and longitude required'}), 400
+    
+    radius = float(request.args.get('radius', 25))
+    category = request.args.get('category')
+    
+    query = Service.query.filter_by(is_active=True)
+    
+    if category:
+        query = query.filter_by(category=category)
+    
+    services = query.all()
+    
+    nearby_services = []
+    for service in services:
+        provider = service.provider
+        
+        if not provider.latitude or not provider.longitude:
+            continue
+        
+        distance = haversine_distance(
+            user_lat, user_lon,
+            provider.latitude, provider.longitude
+        )
+        
+        if distance <= radius:
+            service_data = service.serialize()
+            service_data['provider'] = {
+                'id': provider.id,
+                'name': provider.name,
+                'businessName': provider.business_name,
+                'phone': provider.phone,
+                'email': provider.user.email,
+                'city': provider.city,
+                'state': provider.state,
+                'rating': provider.rating,
+                'distance': round(distance, 1)
+            }
+            nearby_services.append(service_data)
+    
+    nearby_services.sort(key=lambda x: x['provider']['distance'])
+    
+    return jsonify(nearby_services), 200

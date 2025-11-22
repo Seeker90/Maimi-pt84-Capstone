@@ -18,41 +18,68 @@ export const ProviderDashboard = () => {
         price: '',
         duration: ''
     })
+  
+    const [profileForm, setProfileForm] = useState({
+        businessName: '',
+        name: '',
+        phone: '',
+        description: '',
+        address: '',
+        city: '',
+        state: '',
+        zipCode: '',
+        latitude: '',
+        longitude: ''
+    })
 
     useEffect(() => {
-    const token = sessionStorage.getItem("token")
-    const role = sessionStorage.getItem("role")
-    
-    if (!token || role !== "provider") {
-        navigate("/login")
-        return
-    }
-    
-    try {
-        const payload = JSON.parse(atob(token.split('.')[1]))
-        const now = Math.floor(Date.now() / 1000)
+        const token = sessionStorage.getItem("token")
+        const role = sessionStorage.getItem("role")
         
-        if (now > payload.exp) {
-            console.log("Token expired, redirecting to login")
+        if (!token || role !== "provider") {
+            navigate("/login")
+            return
+        }
+        
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]))
+            const now = Math.floor(Date.now() / 1000)
+            
+            if (now > payload.exp) {
+                console.log("Token expired, redirecting to login")
+                sessionStorage.clear()
+                navigate("/login")
+                return
+            }
+        } catch (error) {
+            console.error("Error checking token:", error)
             sessionStorage.clear()
             navigate("/login")
             return
         }
-    } catch (error) {
-        console.error("Error checking token:", error)
-        sessionStorage.clear()
-        navigate("/login")
-        return
-    }
-    
-    fetchDashboardData()
-}, [])
+        
+        fetchDashboardData()
+    }, [])
 
     const fetchDashboardData = async () => {
         setIsLoading(true)
         try {
             const profileData = await providerAPI.getProfile()
             setProviderData(profileData)
+            
+            // Populate profile form with data
+            setProfileForm({
+                businessName: profileData.businessName || '',
+                name: profileData.name || '',
+                phone: profileData.phone || '',
+                description: profileData.description || '',
+                address: profileData.address || '',
+                city: profileData.city || '',
+                state: profileData.state || '',
+                zipCode: profileData.zipCode || '',
+                latitude: profileData.latitude || '',
+                longitude: profileData.longitude || ''
+            })
 
             const servicesData = await providerAPI.getServices()
             setServices(servicesData)
@@ -70,42 +97,72 @@ export const ProviderDashboard = () => {
         }
     }
 
-    const handleAddService = async (e) => {
-    e.preventDefault()
-    
-    try {
-        const serviceData = {
-            name: newService.name,
-            description: newService.description,
-            category: newService.category,
-            price: parseFloat(newService.price),
-            duration: newService.duration ? parseInt(newService.duration) : null
-        }
-
-        console.log('Sending service data:', serviceData)
-
-        const response = await providerAPI.createService(serviceData)
+    const handleProfileUpdate = async (e) => {
+        e.preventDefault()
         
-        console.log('Full response:', response)
-        if (response.service) {
-            setServices([...services, response.service])
-            setShowServiceModal(false)
-            setNewService({
-                name: '',
-                description: '',
-                category: 'pets',
-                price: '',
-                duration: ''
+        try {
+            await providerAPI.updateProfile({
+                businessName: profileForm.businessName,
+                name: profileForm.name,
+                phone: profileForm.phone,
+                description: profileForm.description,
+                address: profileForm.address,
+                city: profileForm.city,
+                state: profileForm.state,
+                zipCode: profileForm.zipCode
             })
-            alert('Service added successfully!')
-        } else {
-            throw new Error('Invalid response format')
+   
+            if (profileForm.latitude && profileForm.longitude) {
+                await providerAPI.updateLocation({
+                    latitude: parseFloat(profileForm.latitude),
+                    longitude: parseFloat(profileForm.longitude),
+                    city: profileForm.city,
+                    state: profileForm.state,
+                    zipCode: profileForm.zipCode
+                })
+            }
+            
+            alert('Profile updated successfully!')
+            fetchDashboardData()
+        } catch (error) {
+            console.error("Error updating profile:", error)
+            alert(error.message || 'Failed to update profile')
         }
-    } catch (error) {
-        console.error("Full error:", error)
-        alert(error.message || 'Error adding service')
     }
-}
+
+    const handleAddService = async (e) => {
+        e.preventDefault()
+        
+        try {
+            const serviceData = {
+                name: newService.name,
+                description: newService.description,
+                category: newService.category,
+                price: parseFloat(newService.price),
+                duration: newService.duration ? parseInt(newService.duration) : null
+            }
+
+            const response = await providerAPI.createService(serviceData)
+            
+            if (response.service) {
+                setServices([...services, response.service])
+                setShowServiceModal(false)
+                setNewService({
+                    name: '',
+                    description: '',
+                    category: 'pets',
+                    price: '',
+                    duration: ''
+                })
+                alert('Service added successfully!')
+            } else {
+                throw new Error('Invalid response format')
+            }
+        } catch (error) {
+            console.error("Full error:", error)
+            alert(error.message || 'Error adding service')
+        }
+    }
 
     const handleDeleteService = async (serviceId) => {
         if (!window.confirm('Are you sure you want to delete this service?')) {
@@ -467,14 +524,15 @@ export const ProviderDashboard = () => {
                                 
                                 <div className="card">
                                     <div className="card-body">
-                                        <form>
+                                        <form onSubmit={handleProfileUpdate}>
                                             <div className="row g-3">
                                                 <div className="col-md-6">
                                                     <label className="form-label">Business Name</label>
                                                     <input 
                                                         type="text" 
                                                         className="form-control" 
-                                                        defaultValue={providerData?.businessName}
+                                                        value={profileForm.businessName}
+                                                        onChange={(e) => setProfileForm({...profileForm, businessName: e.target.value})}
                                                     />
                                                 </div>
                                                 <div className="col-md-6">
@@ -482,7 +540,8 @@ export const ProviderDashboard = () => {
                                                     <input 
                                                         type="text" 
                                                         className="form-control" 
-                                                        defaultValue={providerData?.name}
+                                                        value={profileForm.name}
+                                                        onChange={(e) => setProfileForm({...profileForm, name: e.target.value})}
                                                     />
                                                 </div>
                                                 <div className="col-md-6">
@@ -490,55 +549,125 @@ export const ProviderDashboard = () => {
                                                     <input 
                                                         type="email" 
                                                         className="form-control" 
-                                                        defaultValue={providerData?.email}
+                                                        value={providerData?.email}
+                                                        disabled
+                                                        readOnly
                                                     />
+                                                    <small className="text-muted">Email cannot be changed</small>
                                                 </div>
                                                 <div className="col-md-6">
                                                     <label className="form-label">Phone</label>
                                                     <input 
                                                         type="tel" 
                                                         className="form-control" 
-                                                        defaultValue={providerData?.phone}
+                                                        value={profileForm.phone}
+                                                        onChange={(e) => setProfileForm({...profileForm, phone: e.target.value})}
+                                                        placeholder="(123) 456-7890"
                                                     />
                                                 </div>
+
                                                 <div className="col-12">
-                                                    <label className="form-label">Service Categories</label>
-                                                    <div className="form-check">
-                                                        <input className="form-check-input" type="checkbox" id="pets" />
-                                                        <label className="form-check-label" htmlFor="pets">
-                                                            🐾 Pet Services
-                                                        </label>
-                                                    </div>
-                                                    <div className="form-check">
-                                                        <input className="form-check-input" type="checkbox" id="beauty" />
-                                                        <label className="form-check-label" htmlFor="beauty">
-                                                            💄 Beauty Services
-                                                        </label>
-                                                    </div>
-                                                    <div className="form-check">
-                                                        <input className="form-check-input" type="checkbox" id="vehicles" />
-                                                        <label className="form-check-label" htmlFor="vehicles">
-                                                            🚗 Vehicle Services
-                                                        </label>
-                                                    </div>
-                                                    <div className="form-check">
-                                                        <input className="form-check-input" type="checkbox" id="home" />
-                                                        <label className="form-check-label" htmlFor="home">
-                                                            🏠 Home Care Services
-                                                        </label>
+                                                    <h5 className="mt-3 mb-3">📍 Service Location</h5>
+                                                    <div className="alert alert-info">
+                                                        <strong>Important:</strong> Add your location so customers can find you in nearby searches!
                                                     </div>
                                                 </div>
+
+                                                <div className="col-12">
+                                                    <label className="form-label">Street Address</label>
+                                                    <input 
+                                                        type="text" 
+                                                        className="form-control" 
+                                                        value={profileForm.address}
+                                                        onChange={(e) => setProfileForm({...profileForm, address: e.target.value})}
+                                                        placeholder="123 Main Street"
+                                                    />
+                                                </div>
+
+                                                <div className="col-md-6">
+                                                    <label className="form-label">City *</label>
+                                                    <input 
+                                                        type="text" 
+                                                        className="form-control" 
+                                                        value={profileForm.city}
+                                                        onChange={(e) => setProfileForm({...profileForm, city: e.target.value})}
+                                                        placeholder="Pittsburgh"
+                                                        required
+                                                    />
+                                                </div>
+
+                                                <div className="col-md-3">
+                                                    <label className="form-label">State *</label>
+                                                    <input 
+                                                        type="text" 
+                                                        className="form-control" 
+                                                        value={profileForm.state}
+                                                        onChange={(e) => setProfileForm({...profileForm, state: e.target.value.toUpperCase()})}
+                                                        placeholder="PA"
+                                                        maxLength={2}
+                                                        required
+                                                    />
+                                                </div>
+
+                                                <div className="col-md-3">
+                                                    <label className="form-label">Zip Code *</label>
+                                                    <input 
+                                                        type="text" 
+                                                        className="form-control" 
+                                                        value={profileForm.zipCode}
+                                                        onChange={(e) => setProfileForm({...profileForm, zipCode: e.target.value})}
+                                                        placeholder="15213"
+                                                        maxLength={5}
+                                                        required
+                                                    />
+                                                </div>
+
+                                                <div className="col-12">
+                                                    <div className="alert alert-warning">
+                                                        <strong>Optional:</strong> If you know your exact coordinates, enter them below. Otherwise, leave blank and we'll use your city/state.
+                                                    </div>
+                                                </div>
+
+                                                <div className="col-md-6">
+                                                    <label className="form-label">Latitude (Optional)</label>
+                                                    <input 
+                                                        type="number" 
+                                                        step="any"
+                                                        className="form-control" 
+                                                        value={profileForm.latitude}
+                                                        onChange={(e) => setProfileForm({...profileForm, latitude: e.target.value})}
+                                                        placeholder="40.4406"
+                                                    />
+                                                    <small className="text-muted">Example: 40.4406 (Pittsburgh)</small>
+                                                </div>
+
+                                                <div className="col-md-6">
+                                                    <label className="form-label">Longitude (Optional)</label>
+                                                    <input 
+                                                        type="number" 
+                                                        step="any"
+                                                        className="form-control" 
+                                                        value={profileForm.longitude}
+                                                        onChange={(e) => setProfileForm({...profileForm, longitude: e.target.value})}
+                                                        placeholder="-79.9959"
+                                                    />
+                                                    <small className="text-muted">Example: -79.9959 (Pittsburgh)</small>
+                                                </div>
+
                                                 <div className="col-12">
                                                     <label className="form-label">About Your Business</label>
                                                     <textarea 
                                                         className="form-control" 
                                                         rows="4"
-                                                        defaultValue={providerData?.description}
+                                                        value={profileForm.description}
+                                                        onChange={(e) => setProfileForm({...profileForm, description: e.target.value})}
+                                                        placeholder="Tell customers about your business..."
                                                     ></textarea>
                                                 </div>
+
                                                 <div className="col-12">
-                                                    <button type="submit" className="btn btn-primary">
-                                                        Save Changes
+                                                    <button type="submit" className="btn btn-primary btn-lg">
+                                                        💾 Save Changes
                                                     </button>
                                                 </div>
                                             </div>
