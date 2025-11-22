@@ -50,7 +50,6 @@ export default function VehiclesServicePage() {
   const fetchServices = async () => {
     setIsLoading(true);
     try {
-      // Fetch only vehicle services initially
       const data = await customerAPI.getAllServices('vehicles');
       setServices(data);
     } catch (error) {

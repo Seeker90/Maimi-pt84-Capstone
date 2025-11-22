@@ -6,7 +6,7 @@ export const CustomerProfile = () => {
     const [services, setServices] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
-    const [filter, setFilter] = useState("all"); // all, completed, pending
+    const [filter, setFilter] = useState("all"); 
 
     useEffect(() => {
         fetchCustomerServices();

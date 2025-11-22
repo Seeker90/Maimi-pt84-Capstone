@@ -7,11 +7,11 @@ export const Navbar = () => {
     const [isLoggedIn, setIsLoggedIn] = React.useState(false);
 
     React.useEffect(() => {
-        const token = localStorage.getItem('token');
+        const token = sessionStorage.getItem('token');
         setIsLoggedIn(!!token);
 
         const handleStorageChange = () => {
-            const updatedToken = localStorage.getItem('token');
+            const updatedToken = sessionStorage.getItem('token');
             setIsLoggedIn(!!updatedToken);
         };
 
@@ -20,7 +20,7 @@ export const Navbar = () => {
     }, []);
 
     const handleLogout = () => {
-        localStorage.removeItem('token');
+        sessionStorage.removeItem('token');
         setIsLoggedIn(false);
         navigate('/login');
     };
