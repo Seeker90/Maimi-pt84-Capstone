@@ -29,6 +29,8 @@ export const UserAccess = ({ email, password, setEmail, setPassword }) => {
             
             sessionStorage.setItem("userSession", JSON.stringify(storageData))
             
+            window.dispatchEvent(new Event('storage'))
+            
             if(role === "provider"){
                 navigate("/provider-dashboard")
             } else {

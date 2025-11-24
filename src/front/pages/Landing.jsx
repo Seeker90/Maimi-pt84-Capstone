@@ -1,28 +1,30 @@
+import './../../lib/LandingPage.css';
+
 export const LandingPage = () => {
 	const services = [
 		{
 			icon: '🚗',
 			title: 'Vehicle',
 			description: 'Any services related to vehicles such as maintenence or cleaning',
-			gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+			gradientClass: 'gradient-purple'
 		},
 		{
 			icon: '🏠',
 			title: 'Home Care',
 			description: 'Comprehensive cleaning services for your house, both insode and out.',
-			gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
+			gradientClass: 'gradient-pink-red'
 		},
 		{
 			icon: '🐾',
 			title: 'Pets',
 			description: 'Any services related to Pets such as Grooming, walks, etc.',
-			gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
+			gradientClass: 'gradient-cyan'
 		},
 		{
 			icon: '💄',
 			title: 'Beauty',
 			description: 'Premium beauty services and cosmetic treatments delivered by certified professionals.',
-			gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)'
+			gradientClass: 'gradient-pink-yellow'
 		},
 		
 	];
@@ -30,40 +32,21 @@ export const LandingPage = () => {
 	const ServiceCard = ({ service }) => (
 		<div className="col-md-6 col-lg-6">
 			<div 
-				className="card h-100 border-0 shadow-sm"
-				style={{ 
-					transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-					cursor: 'pointer'
-				}}
-				onMouseEnter={(e) => {
-					e.currentTarget.style.transform = 'translateY(-10px)';
-					e.currentTarget.style.boxShadow = '0 15px 35px rgba(0, 0, 0, 0.2)';
-				}}
-				onMouseLeave={(e) => {
-					e.currentTarget.style.transform = 'translateY(0)';
-					e.currentTarget.style.boxShadow = '0 5px 15px rgba(0, 0, 0, 0.1)';
-				}}
+				className="card h-100 border-0 shadow-sm service-card"
 			>
 				<div 
-					className="card-body text-center p-4"
-					style={{ background: service.gradient }}
+					className={`card-body service-card-body ${service.gradientClass}`}
 				>
-					<div 
-						style={{ 
-							fontSize: '3rem',
-							marginBottom: '1rem',
-							color: '#fff'
-						}}
-					>
+					<div className="service-icon">
 						{service.icon}
 					</div>
-					<h5 className="card-title fw-bold text-white mb-3">{service.title}</h5>
-					<p className="card-text text-white-50">
+					<h5 className="card-title service-card-title">{service.title}</h5>
+					<p className="card-text service-card-text">
 						{service.description}
 					</p>
 				</div>
-				<div className="card-footer border-0 bg-white text-center py-3">
-					<a href="#" className="btn btn-sm btn-outline-primary">Learn More</a>
+				<div className="card-footer service-card-footer">
+					<a href="/login" className="btn btn-sm btn-outline-primary">Learn More</a>
 				</div>
 			</div>
 		</div>
@@ -73,7 +56,7 @@ export const LandingPage = () => {
 		<>
 			{/* Carousel Section */}
 			<div className="carousel">
-				<div id="carouselExampleIndicators" className="carousel slide" data-bs-ride="carousel">
+				<div id="carouselExampleIndicators" className="carousel slide" data-bs-ride="carousel" data-bs-interval="3000">
 					<div className="carousel-indicators">
 						<button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="0" className="active" aria-current="true" aria-label="Slide 1"></button>
 						<button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="1" aria-label="Slide 2"></button>
@@ -104,7 +87,7 @@ export const LandingPage = () => {
 					</button>
 				</div>
 			</div>
-			<section className="about-us py-5" style={{ backgroundColor: '#f8f9fa' }}>
+			<section className="about-us py-5">
 				<div className="container">
 					<div className="row align-items-center">
 						<div className="col-lg-6 mb-4 mb-lg-0">
@@ -117,19 +100,19 @@ export const LandingPage = () => {
 							</p>
 							<ul className="list-unstyled">
 								<li className="mb-2">
-									<span style={{ color: '#28a745', marginRight: '8px' }}>✓</span>
+									<span>✓</span>
 									<strong>Professional Team:</strong> Experienced experts in their fields
 								</li>
 								<li className="mb-2">
-									<span style={{ color: '#28a745', marginRight: '8px' }}>✓</span>
+									<span>✓</span>
 									<strong>Quality Assured:</strong> Every project meets our high standards
 								</li>
 								<li className="mb-2">
-									<span style={{ color: '#28a745', marginRight: '8px' }}>✓</span>
+									<span>✓</span>
 									<strong>Customer Focused:</strong> Your satisfaction is our priority
 								</li>
 								<li className="mb-2">
-									<span style={{ color: '#28a745', marginRight: '8px' }}>✓</span>
+									<span>✓</span>
 									<strong>Competitive Pricing:</strong> Best value for your investment
 								</li>
 							</ul>
@@ -144,7 +127,7 @@ export const LandingPage = () => {
 					</div>
 				</div>
 			</section>
-			<section className="services py-5" style={{ backgroundColor: '#ffffff' }}>
+			<section className="services py-5">
 				<div className="container">
 					<div className="text-center mb-5">
 						<h2 className="display-5 fw-bold mb-3">Our Services</h2>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { providerAPI } from "../fetch"
-import "./ProviderDashboard.css"
+import "./../../lib/ProviderDashboard.css"
 
 export const ProviderDashboard = () => {
     const navigate = useNavigate()

@@ -1,0 +1,123 @@
+/* Carousel Section */
+.carousel {
+  padding: 2rem;
+}
+
+.carousel-inner {
+  padding: 2rem;
+}
+
+.carousel-item img {
+  height: 400px;
+  width: auto;
+}
+
+/* Service Cards */
+.service-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+}
+
+.service-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+}
+
+.service-card-body {
+  text-align: center;
+  padding: 1rem;
+}
+
+.service-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  color: #fff;
+}
+
+.service-card-title {
+  font-weight: bold;
+  color: white;
+  margin-bottom: 1rem;
+}
+
+.service-card-text {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.service-card-footer {
+  border: none;
+  background-color: white;
+  text-align: center;
+  padding: 1rem 0;
+}
+
+/* About Us Section */
+.about-us {
+  padding: 3rem 0;
+  background-color: #f8f9fa;
+}
+
+.about-us h2 {
+  font-size: 3rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+}
+
+.about-us .lead {
+  margin-bottom: 1rem;
+}
+
+.about-us ul {
+  list-style: none;
+}
+
+.about-us li {
+  margin-bottom: 0.5rem;
+}
+
+.about-us li span {
+  color: #28a745;
+  margin-right: 8px;
+}
+
+.about-us li strong {
+  font-weight: bold;
+}
+
+.about-us img {
+  border-radius: 0.5rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+}
+
+/* Services Section */
+.services {
+  padding: 3rem 0;
+  background-color: #ffffff;
+}
+
+.services h2 {
+  font-size: 3rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.services .lead {
+  color: #6c757d;
+}
+
+/* Gradient Backgrounds */
+.gradient-purple {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.gradient-pink-red {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.gradient-cyan {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.gradient-pink-yellow {
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
