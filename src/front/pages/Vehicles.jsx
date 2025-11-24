@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { customerAPI } from '../fetch';
+import { NearbySearch } from '../components/NearbySearch';
 import './../../lib/Services.css';
 
 export default function VehiclesServicePage() {
@@ -11,6 +12,7 @@ export default function VehiclesServicePage() {
   const [services, setServices] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchMode, setSearchMode] = useState('all');
+  const [bookingInProgress, setBookingInProgress] = useState(null);
 
   const serviceCategories = [
     { id: 'beauty', name: 'Beauty', icon: '💄' },
@@ -73,6 +75,20 @@ export default function VehiclesServicePage() {
   const handleShowAll = async () => {
     setSearchMode('all');
     await fetchServices();
+  };
+
+  const handleBookNow = async (serviceId) => {
+    setBookingInProgress(serviceId);
+    try {
+      const result = await customerAPI.createBooking(serviceId);
+      alert('Booking confirmed! SMS sent to both parties.');
+      // Optionally refresh services or navigate
+    } catch (error) {
+      console.error('Booking error:', error);
+      alert('Failed to complete booking. Please try again.');
+    } finally {
+      setBookingInProgress(null);
+    }
   };
 
   const providers = useMemo(() => {
@@ -250,8 +266,19 @@ export default function VehiclesServicePage() {
                           Duration: {service.duration} minutes
                         </p>
                       )}
-                      <button className="dates-available-btn">
-                        Book Now
+                      <button 
+                        className="dates-available-btn"
+                        onClick={() => handleBookNow(service.id)}
+                        disabled={bookingInProgress === service.id}
+                      >
+                        {bookingInProgress === service.id ? (
+                          <>
+                            <span className="spinner-border spinner-border-sm me-2" />
+                            Booking...
+                          </>
+                        ) : (
+                          'Book Now'
+                        )}
                       </button>
                     </div>
 

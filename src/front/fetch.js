@@ -1,41 +1,39 @@
 /* -------------------- LOGIN FUNCTION -------------------- */
 
-export const login = async (email, password, dispatch) => {
+export const login = async (email, password, role) => {
     const options = {
         method: 'POST',
         headers: {
             "Content-Type": 'application/json',
         },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ username: email, password, role })
     };
 
-    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/token`, options);
+    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/login`, options);
 
     if (!response.ok) {
         const data = await response.json();
-        console.log(data.msg);
+        console.log(data.message);
 
         return {
             error: {
                 status: response.status,
                 statusText: response.statusText,
+                message: data.message
             }
         };
     }
 
     const data = await response.json();
 
-    sessionStorage.setItem("token", data.access_token);
+    sessionStorage.setItem("token", data.token);
 
-    dispatch({
-        type: 'fetchedToken',
-        payload: {
-            token: data.access_token,
-            isLoginSuccessful: true,
-        }
-    });
-
-    return data;
+    return {
+        token: data.token,
+        role: data.role,
+        user_id: data.user_id,
+        isLoginSuccessful: true
+    };
 };
 
 const API_URL = import.meta.env.VITE_BACKEND_URL;
@@ -195,6 +193,16 @@ export const providerAPI = {
 
 export const customerAPI = {
 
+    createBooking: async (serviceId) => {
+        const response = await fetch(`${API_URL}/api/bookings`, {
+            method: "POST",
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ service_id: serviceId })
+        });
+        if (!response.ok) throw new Error('Failed to create booking');
+        return response.json();
+    },
+
     getAllServices: async (category = null) => {
         let url = `${API_URL}/api/services`
         if (category) {
@@ -305,3 +313,6 @@ export const customerAPI = {
         throw new Error('Location not found');
     }
 };
+
+
+  

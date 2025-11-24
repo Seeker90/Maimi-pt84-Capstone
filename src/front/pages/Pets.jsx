@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { customerAPI } from '../fetch';
+import { NearbySearch } from '../components/NearbySearch';
 import './../../lib/Services.css';
 
 export default function PetsServicePage() {
@@ -10,6 +11,8 @@ export default function PetsServicePage() {
   const [sortByPrice, setSortByPrice] = useState('Price');
   const [services, setServices] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchMode, setSearchMode] = useState('all');
+  const [bookingInProgress, setBookingInProgress] = useState(null);
 
   const serviceCategories = [
     { id: 'beauty', name: 'Beauty', icon: '💄' },
@@ -45,7 +48,7 @@ export default function PetsServicePage() {
     }
 
     fetchServices();
-  }, []);
+  }, [navigate]);
 
   const fetchServices = async () => {
     setIsLoading(true);
@@ -63,6 +66,31 @@ export default function PetsServicePage() {
     navigate(`/services/${categoryId}`);
   };
 
+  const handleNearbySearchResults = (results) => {
+    setServices(results);
+    setSearchMode('nearby');
+    setSortByLocation('Location');
+  };
+
+  const handleShowAll = async () => {
+    setSearchMode('all');
+    await fetchServices();
+  };
+
+  const handleBookNow = async (serviceId) => {
+    setBookingInProgress(serviceId);
+    try {
+      const result = await customerAPI.createBooking(serviceId);
+      alert('Booking confirmed! SMS sent to both parties.');
+      // Optionally refresh services or navigate
+    } catch (error) {
+      console.error('Booking error:', error);
+      alert('Failed to complete booking. Please try again.');
+    } finally {
+      setBookingInProgress(null);
+    }
+  };
+
   const providers = useMemo(() => {
     let filtered = services;
 
@@ -74,14 +102,16 @@ export default function PetsServicePage() {
       );
     }
 
-    if (sortByLocation === 'Nearest First') {
-      filtered = [...filtered].sort((a, b) => 
-        (a.provider.city || '').localeCompare(b.provider.city || '')
-      );
-    } else if (sortByLocation === 'Farthest First') {
-      filtered = [...filtered].sort((a, b) => 
-        (b.provider.city || '').localeCompare(a.provider.city || '')
-      );
+    if (searchMode !== 'nearby') {
+      if (sortByLocation === 'Nearest First') {
+        filtered = [...filtered].sort((a, b) => 
+          (a.provider.city || '').localeCompare(b.provider.city || '')
+        );
+      } else if (sortByLocation === 'Farthest First') {
+        filtered = [...filtered].sort((a, b) => 
+          (b.provider.city || '').localeCompare(a.provider.city || '')
+        );
+      }
     }
 
     if (sortByPrice === 'Low to High') {
@@ -91,7 +121,7 @@ export default function PetsServicePage() {
     }
 
     return filtered;
-  }, [services, selectedCategory, sortByLocation, sortByPrice]);
+  }, [services, selectedCategory, sortByLocation, sortByPrice, searchMode]);
 
   if (isLoading) {
     return (
@@ -130,6 +160,27 @@ export default function PetsServicePage() {
    
       <div className="pets-service-container">
         <div className="pets-service-content">
+          <div className="container mb-4">
+            <NearbySearch 
+              onSearchResults={handleNearbySearchResults}
+              category="pets"
+            />
+            
+            {searchMode === 'nearby' && (
+              <div className="text-center mb-3">
+                <button 
+                  className="btn btn-outline-secondary"
+                  onClick={handleShowAll}
+                >
+                  ← Show All Services
+                </button>
+                <p className="text-muted mt-2">
+                  Showing {services.length} service(s) near you
+                </p>
+              </div>
+            )}
+          </div>
+
           <div className="filter-controls">
             <div className="filter-select-wrapper">
               <select
@@ -151,6 +202,7 @@ export default function PetsServicePage() {
                 value={sortByLocation}
                 onChange={(e) => setSortByLocation(e.target.value)}
                 className="filter-select"
+                disabled={searchMode === 'nearby'}
               >
                 <option>Location</option>
                 <option>Nearest First</option>
@@ -176,8 +228,12 @@ export default function PetsServicePage() {
           <div className="provider-cards">
             {providers.length === 0 ? (
               <div className="text-center p-5">
-                <h3>No services available yet</h3>
-                <p className="text-muted">Check back later for pet services in your area</p>
+                <h3>No services available</h3>
+                <p className="text-muted">
+                  {searchMode === 'nearby' 
+                    ? 'Try expanding your search radius or searching in a different location'
+                    : 'Check back later for pet services in your area'}
+                </p>
               </div>
             ) : (
               providers.map((service) => (
@@ -188,6 +244,12 @@ export default function PetsServicePage() {
                     </div>
 
                     <div className="provider-info">
+                      {searchMode === 'nearby' && service.provider.distance && (
+                        <span className="badge bg-success mb-2">
+                          📍 {service.provider.distance} miles away
+                        </span>
+                      )}
+                      
                       <h3 className="provider-name">
                         Company Name: {service.provider.businessName || service.provider.name}
                       </h3>
@@ -205,8 +267,19 @@ export default function PetsServicePage() {
                           Duration: {service.duration} minutes
                         </p>
                       )}
-                      <button className="dates-available-btn">
-                        Book Now
+                      <button 
+                        className="dates-available-btn"
+                        onClick={() => handleBookNow(service.id)}
+                        disabled={bookingInProgress === service.id}
+                      >
+                        {bookingInProgress === service.id ? (
+                          <>
+                            <span className="spinner-border spinner-border-sm me-2" />
+                            Booking...
+                          </>
+                        ) : (
+                          'Book Now'
+                        )}
                       </button>
                     </div>
 

@@ -40,7 +40,7 @@ export const router = createBrowserRouter(
             <Route path="/provider-dashboard" element={<ProviderDashboard />} />
             <Route path="/services/beauty" element={<BeautyServicePage /> } />
             <Route path="/signup" element={<Signup />} />
-            <Route path="/services/home-care" element={<Homecare /> } />
+            <Route path="/services/home" element={<Homecare /> } />
             <Route path="/profile" element={<CustomerProfile/>} />
         </Route>
     

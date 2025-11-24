@@ -15,6 +15,7 @@ from flask_jwt_extended import (
 from datetime import datetime, timedelta
 from sqlalchemy import func
 from math import radians, cos, sin, asin, sqrt
+from api.sms_service import sms_service
 
 api = Blueprint("api", __name__)
 CORS(api)
@@ -479,3 +480,88 @@ def get_nearby_services():
     nearby_services.sort(key=lambda x: x['provider']['distance'])
     
     return jsonify(nearby_services), 200
+
+
+@api.route('/bookings', methods=['POST'])
+@jwt_required()
+@customer_required()
+def create_booking():
+    """
+    Create a new booking and send SMS notifications via Twilio
+    """
+    user_id_str = get_jwt_identity()
+    user_id = int(user_id_str)
+    
+    customer = Customer.query.filter_by(user_id=user_id).first()
+    if not customer:
+        return jsonify({'message': 'Customer profile not found'}), 404
+    
+    data = request.get_json() or {}
+    
+    # Validate required fields
+    required_fields = ['service_id']
+    if not all(data.get(field) for field in required_fields):
+        return jsonify({'message': 'Service ID is required'}), 400
+    
+    service = Service.query.get(data['service_id'])
+    if not service:
+        return jsonify({'message': 'Service not found'}), 404
+    
+    provider = service.provider
+    
+    # Create booking
+    new_booking = Booking(
+        customer_id=customer.id,
+        provider_id=provider.id,
+        service_id=service.id,
+        booking_date=datetime.utcnow().date(),
+        booking_time=datetime.utcnow().time(),
+        status='pending',
+        total_price=service.price
+    )
+    
+    db.session.add(new_booking)
+    db.session.flush()
+    
+    try:
+        # Send SMS to customer with provider details
+        if customer.phone:
+            sms_service.send_booking_confirmation_to_customer(
+                customer.phone,
+                provider.name,
+                provider.phone or 'Not provided',
+                provider.user.email
+            )
+        
+        # Send SMS to provider with customer details
+        if provider.phone:
+            sms_service.send_booking_notification_to_provider(
+                provider.phone,
+                customer.name,
+                customer.address or 'Not provided',
+                service.name
+            )
+        
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Booking created successfully and SMS notifications sent',
+            'booking': new_booking.serialize()
+        }), 201
+        
+    except ValueError as e:
+        db.session.rollback()
+        print(f"SMS Error: {str(e)}")
+        # Still create the booking even if SMS fails
+        db.session.add(new_booking)
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Booking created but SMS notification failed',
+            'booking': new_booking.serialize(),
+            'sms_error': str(e)
+        }), 201
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'message': f'Error creating booking: {str(e)}'}), 500
