@@ -203,6 +203,14 @@ export const customerAPI = {
         return response.json();
     },
 
+    getCustomerBookings: async () => {
+        const response = await fetch(`${API_URL}/api/customer/bookings`, {
+            headers: getAuthHeaders()
+        });
+        if (!response.ok) throw new Error('Failed to fetch bookings');
+        return response.json();
+    },
+
     getAllServices: async (category = null) => {
         let url = `${API_URL}/api/services`
         if (category) {

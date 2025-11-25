@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { customerAPI } from "../fetch";
 import "./../../lib/CustomerProfile.css";
 
 export const CustomerProfile = () => {
@@ -17,23 +18,11 @@ export const CustomerProfile = () => {
         setError("");
         
         try {
-            const token = sessionStorage.getItem("token");
-            const response = await fetch("/admin/service", {
-                headers: {
-                    "Authorization": `Bearer ${token}`,
-                    "Content-Type": "application/json"
-                }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setServices(data);
-            } else {
-                setError("Failed to load services. Please try again.");
-            }
+            const data = await customerAPI.getCustomerBookings();
+            setServices(data);
         } catch (error) {
             console.error("Error fetching services:", error);
-            setError("Unable to connect to server");
+            setError(error.message || "Unable to load your bookings");
         } finally {
             setIsLoading(false);
         }
@@ -69,8 +58,8 @@ export const CustomerProfile = () => {
             <div className="container mt-5">
                 <div className="row mb-4">
                     <div className="col-lg-8">
-                        <h1 className="display-5 fw-bold mb-2">My Services</h1>
-                        <p className="text-muted">View your service history and status</p>
+                        <h1 className="display-5 fw-bold mb-2">My Bookings</h1>
+                        <p className="text-muted">View your service bookings and history</p>
                     </div>
                     <div className="col-lg-4 d-flex align-items-center justify-content-lg-end mt-3 mt-lg-0">
                         <Link to="/services" className="btn btn-primary btn-lg">
@@ -93,7 +82,7 @@ export const CustomerProfile = () => {
                             className={`btn ${filter === "all" ? "btn-primary" : "btn-outline-primary"}`}
                             onClick={() => setFilter("all")}
                         >
-                            All Services ({services.length})
+                            All Bookings ({services.length})
                         </button>
                         <button
                             type="button"
@@ -120,8 +109,8 @@ export const CustomerProfile = () => {
                     </div>
                 ) : filteredServices.length === 0 ? (
                     <div className="alert alert-info text-center py-5">
-                        <h5>No services found</h5>
-                        <p className="text-muted mb-0">You don't have any {filter !== "all" ? filter : ""} services yet.</p>
+                        <h5>No bookings found</h5>
+                        <p className="text-muted mb-0">You don't have any {filter !== "all" ? filter : ""} bookings yet.</p>
                     </div>
                 ) : (
                     <div className="services-list">
@@ -149,16 +138,11 @@ export const CustomerProfile = () => {
                                         <div className="col-md-4 text-md-end mt-3 mt-md-0">
                                             <div className="service-details">
                                                 <p className="mb-2">
-                                                    <strong>Price:</strong> <span className="text-success fs-5">${service.price}</span>
+                                                    <strong>Price:</strong> <span className="text-success fs-5">${service.price.toFixed(2)}</span>
                                                 </p>
-                                                <p className="mb-3">
-                                                    <strong>Duration:</strong> {service.duration} hours
+                                                <p className="mb-0">
+                                                    <strong>Duration:</strong> {service.duration > 0 ? service.duration : 'N/A'} {service.duration === 1 ? 'hour' : 'hours'}
                                                 </p>
-                                                {service.status === "completed" && service.rating && (
-                                                    <p className="mb-0">
-                                                        <strong>Rating:</strong> <span className="text-warning">★ {service.rating}/5</span>
-                                                    </p>
-                                                )}
                                             </div>
                                         </div>
                                     </div>
