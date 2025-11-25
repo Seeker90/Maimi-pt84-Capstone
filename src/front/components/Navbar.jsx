@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import React from "react";
 import homeCallsImg from './../../lib/HomeCalls.png'
+import './../../lib/Navbar.css';
 
 export const Navbar = () => {
     const navigate = useNavigate();

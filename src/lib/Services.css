@@ -1,320 +1,347 @@
 /* Custom hover effects for category cards */
-.homecare-category-card {
+/* ================================
+   CATEGORY CARDS - The boxes at the top with icons
+   ================================ */
+.homecare-category-card,
+.category-card {
   transition: all 0.3s ease;
+  border-radius: 12px; /* Rounded corners */
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* Purple gradient */
+  color: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.homecare-category-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  background-color: #f8f9fa;
+.homecare-category-card:hover,
+.category-card:hover {
+  transform: translateY(-8px) scale(1.02); /* Lifts up and grows slightly */
+  box-shadow: 0 12px 24px rgba(102, 126, 234, 0.4); /* Glowing shadow */
 }
 
-.homecare-service-container {
-  min-height: 100vh;
-  background-color: white;
-}
-
+/* ================================
+   MAIN CONTAINERS - The big sections
+   ================================ */
+.homecare-service-container,
 .pets-service-container {
   min-height: 100vh;
-  background-color: white;
+  background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%); /* Subtle gradient background */
+  padding-bottom: 3rem;
 }
 
-.homecare-service-content {
+.homecare-service-content,
+.pets-service-content {
   padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto; /* Centers the content */
 }
 
+.homecare-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* ================================
+   FILTER CONTROLS - The dropdown menus
+   ================================ */
+.filter-controls,
 .homecare-filter-controls {
   display: flex;
   gap: 1rem;
   margin-bottom: 2rem;
+  flex-wrap: wrap; /* Stacks on mobile */
 }
 
-.pets-service-content {
-  padding: 2rem;
-}
-
-.filter-controls {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
+.filter-select-wrapper,
 .homecare-filter-select-wrapper {
   position: relative;
   flex: 1;
+  min-width: 200px; /* Prevents them from getting too small */
 }
 
-.filter-select-wrapper {
-  position: relative;
-  flex: 1;
-}
-
+.filter-select,
 .homecare-filter-select {
   appearance: none;
-  padding: 0.5rem 1rem;
-  padding-right: 2rem;
-  border: 1px solid #d1d5db;
+  padding: 0.75rem 1.25rem;
+  padding-right: 2.5rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px; /* Rounded corners */
   background-color: white;
-  font-size: 0.875rem;
+  font-size: 0.95rem;
   width: 100%;
   cursor: pointer;
-  background-image: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
+  transition: all 0.3s ease;
+  font-weight: 500;
 }
 
-.filter-select {
-  appearance: none;
-  padding: 0.5rem 1rem;
-  padding-right: 2rem;
-  border: 1px solid #d1d5db;
-  background-color: white;
-  font-size: 0.875rem;
-  width: 100%;
-  cursor: pointer;
-  background-image: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
+.filter-select:hover,
+.homecare-filter-select:hover {
+  border-color: #667eea; /* Purple border on hover */
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
 }
 
-.homecare-filter-select-wrapper:nth-child(2) .homecare-filter-select {
-  width: 100%;
+.filter-select:focus,
+.homecare-filter-select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); /* Focus ring */
 }
 
+.filter-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.filter-select-arrow,
 .homecare-filter-select-arrow {
   position: absolute;
-  right: 0.5rem;
+  right: 1rem;
   top: 50%;
   transform: translateY(-50%);
   pointer-events: none;
   font-size: 0.75rem;
+  color: #667eea;
 }
 
-.filter-select-wrapper:nth-child(2) .filter-select {
-  width: 100%;
-}
-
-.filter-select-arrow {
-  position: absolute;
-  right: 0.5rem;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-  font-size: 0.75rem;
-}
-
+/* ================================
+   PROVIDER CARDS - The service listings
+   ================================ */
+.provider-cards,
 .homecare-provider-cards {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
 
-.provider-cards {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
+.provider-card,
 .homecare-provider-card {
-  border: 1px solid #9ca3af;
-  padding: 1.5rem;
+  border: none; /* Remove old border */
+  padding: 2rem;
+  background: white;
+  border-radius: 16px; /* Nice rounded corners */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); /* Soft shadow */
+  transition: all 0.3s ease;
 }
 
-.provider-card {
-  border: 1px solid #9ca3af;
-  padding: 1.5rem;
+.provider-card:hover,
+.homecare-provider-card:hover {
+  transform: translateY(-4px); /* Lifts up on hover */
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12); /* Deeper shadow */
 }
 
+.provider-card-content,
 .homecare-provider-card-content {
   display: flex;
-  gap: 1.5rem;
+  gap: 2rem;
+  flex-wrap: wrap; /* Stacks on mobile */
 }
 
-.provider-card-content {
-  display: flex;
-  gap: 1.5rem;
-}
-
+/* ================================
+   PROVIDER IMAGE - The placeholder square
+   ================================ */
+.provider-image-placeholder,
 .homecare-provider-image-placeholder {
-  width: 6rem;
-  height: 6rem;
-  border: 2px solid #9ca3af;
+  width: 7rem;
+  height: 7rem;
+  border-radius: 12px; /* Rounded corners */
+  border: none;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #f9fafb;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* Purple gradient */
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
-.provider-image-placeholder {
-  width: 6rem;
-  height: 6rem;
-  border: 2px solid #9ca3af;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #f9fafb;
-}
-
+.provider-image-inner,
 .homecare-provider-image-inner {
-  width: 4rem;
-  height: 4rem;
-  border: 1px solid #9ca3af;
+  width: 4.5rem;
+  height: 4.5rem;
+  border: 2px solid rgba(255, 255, 255, 0.8);
   transform: rotate(45deg);
+  background: rgba(255, 255, 255, 0.1);
 }
 
-.provider-image-inner {
-  width: 4rem;
-  height: 4rem;
-  border: 1px solid #9ca3af;
-  transform: rotate(45deg);
-}
-
+/* ================================
+   PROVIDER INFO - Company name, service, price
+   ================================ */
+.provider-info,
 .homecare-provider-info {
   flex: 1;
+  min-width: 250px;
 }
 
+.provider-name,
 .homecare-provider-name {
-  font-weight: 600;
-  color: #111827;
+  font-weight: 700;
+  color: #1f2937;
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
 }
 
-.provider-info {
-  flex: 1;
-}
-
-.provider-name {
-  font-weight: 600;
-  color: #111827;
-}
-
+.provider-service,
 .homecare-provider-service {
-  font-size: 0.875rem;
-  color: #374151;
-  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  color: #6b7280;
+  margin-bottom: 0.75rem;
+  font-weight: 500;
 }
 
-.provider-service {
-  font-size: 0.875rem;
-  color: #374151;
-  margin-bottom: 0.5rem;
+.provider-description {
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin-bottom: 0.75rem;
+  line-height: 1.5;
 }
 
+.provider-price,
 .homecare-provider-price {
-  font-size: 0.875rem;
-  color: #374151;
+  font-size: 1.25rem;
+  color: #10b981; /* Green for price */
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.provider-duration {
+  font-size: 0.9rem;
+  color: #6b7280;
   margin-bottom: 1rem;
 }
 
-.provider-price {
-  font-size: 0.875rem;
-  color: #374151;
-  margin-bottom: 1rem;
-}
-
+/* ================================
+   BOOK NOW BUTTON - The main action button
+   ================================ */
+.dates-available-btn,
 .homecare-dates-available-btn {
-  padding: 0.5rem 1rem;
-  border: 1px solid #111827;
-  font-size: 0.875rem;
-  font-weight: 500;
-  background-color: transparent;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
-.dates-available-btn {
-  padding: 0.5rem 1rem;
-  border: 1px solid #111827;
-  font-size: 0.875rem;
-  font-weight: 500;
-  background-color: transparent;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
+.dates-available-btn:hover,
 .homecare-dates-available-btn:hover {
-  background-color: #f3f4f6;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
 }
 
+.dates-available-btn:active,
+.homecare-dates-available-btn:active {
+  transform: translateY(0);
+}
+
+.dates-available-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ================================
+   SERVICE AREA - Location info section
+   ================================ */
+.service-area,
 .homecare-service-area {
-  width: 12rem;
+  width: 14rem;
+  background: #f9fafb;
+  padding: 1rem;
+  border-radius: 8px;
 }
 
+.service-area-title,
 .homecare-service-area-title {
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: 0.9rem;
+  font-weight: 700;
   color: #374151;
   margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.dates-available-btn:hover {
-  background-color: #f3f4f6;
-}
-
-.service-area {
-  width: 12rem;
-}
-
-.service-area-title {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #374151;
-  margin-bottom: 0.75rem;
-}
-
+.service-area-text,
 .homecare-service-area-text {
-  font-size: 0.875rem;
-  color: #4b5563;
+  font-size: 0.9rem;
+  color: #6b7280;
   margin-bottom: 0.5rem;
 }
 
-.service-area-text {
-  font-size: 0.875rem;
-  color: #4b5563;
-  margin-bottom: 0.5rem;
-}
-
+/* ================================
+   CONTACT INFO - Email and phone inputs
+   ================================ */
+.contact-info,
 .homecare-contact-info {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  min-width: 200px;
 }
 
-.contact-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
+.contact-input,
 .homecare-contact-input {
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #9ca3af;
-  font-size: 0.75rem;
-  background-color: white;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  background-color: #f9fafb;
   cursor: default;
+  color: #374151;
+  transition: all 0.2s ease;
 }
 
+.contact-input:read-only,
 .homecare-contact-input:read-only {
-  background-color: white;
-  color: #1f2937;
+  background-color: #f9fafb;
+  color: #374151;
 }
 
-.contact-input {
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #9ca3af;
-  font-size: 0.75rem;
-  background-color: white;
-  cursor: default;
+/* ================================
+   MOBILE RESPONSIVENESS - Works on phones
+   ================================ */
+@media (max-width: 768px) {
+  .provider-card-content,
+  .homecare-provider-card-content {
+    flex-direction: column;
+  }
+  
+  .service-area,
+  .homecare-service-area {
+    width: 100%;
+  }
+  
+  .contact-info,
+  .homecare-contact-info {
+    width: 100%;
+  }
+  
+  .filter-controls,
+  .homecare-filter-controls {
+    flex-direction: column;
+  }
+  
+  .filter-select-wrapper,
+  .homecare-filter-select-wrapper {
+    width: 100%;
+  }
 }
 
-.contact-input:read-only {
-  background-color: white;
-  color: #1f2937;
+/* ================================
+   LOADING & EMPTY STATES
+   ================================ */
+.spinner-border {
+  color: #667eea !important;
 }
 
-.vehicle-container{
-  transform: translateY(-5px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  background-color: #f8f9fa;
+/* Badge for distance */
+.badge {
+  border-radius: 6px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.badge.bg-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
 }

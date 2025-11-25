@@ -6,7 +6,7 @@ export const CustomerProfile = () => {
     const [services, setServices] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
-    const [filter, setFilter] = useState("all"); 
+    const [filter, setFilter] = useState("all");
 
     useEffect(() => {
         fetchCustomerServices();
@@ -15,10 +15,11 @@ export const CustomerProfile = () => {
     const fetchCustomerServices = async () => {
         setIsLoading(true);
         setError("");
-        
+
         try {
             const token = sessionStorage.getItem("token");
-            const response = await fetch("/admin/service", {
+          
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/customer/bookings`, {
                 headers: {
                     "Authorization": `Bearer ${token}`,
                     "Content-Type": "application/json"

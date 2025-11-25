@@ -1,0 +1,195 @@
+ /* ================================
+   NAVBAR - The top navigation bar
+   ================================ */
+.navbar {
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+  padding: 1rem 2rem !important;
+  backdrop-filter: blur(10px);
+  background-color: rgba(255, 255, 255, 0.95) !important;
+}
+
+/* Logo hover effect */
+.navbar-brand {
+  transition: transform 0.3s ease;
+}
+
+.navbar-brand:hover {
+  transform: scale(1.05);
+}
+
+.logo {
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.logo:hover {
+  transform: rotate(5deg) scale(1.1);
+  filter: drop-shadow(0 4px 8px rgba(102, 126, 234, 0.3));
+}
+
+/* ================================
+   NAVBAR BUTTONS - The cool new buttons
+   ================================ */
+.navbar .btn {
+  position: relative;
+  padding: 0.75rem 2rem !important;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border-radius: 25px; /* Pill-shaped */
+  border: 2px solid transparent;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  overflow: hidden;
+  z-index: 1;
+}
+
+/* Gradient effect behind button */
+.navbar .btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  transition: width 0.4s ease;
+  z-index: -1;
+  border-radius: 25px;
+}
+
+.navbar .btn:hover::before {
+  width: 100%; /* Fills from left to right */
+}
+
+/* ================================
+   SIGN UP BUTTON - Primary action
+   ================================ */
+.navbar .btn-outline-dark:nth-of-type(1) {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: 2px solid transparent;
+  color: white;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.navbar .btn-outline-dark:nth-of-type(1):hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%); /* Reverse gradient */
+}
+
+/* ================================
+   LOGIN BUTTON - Secondary action
+   ================================ */
+.navbar .btn-outline-dark:nth-of-type(2) {
+  border: 2px solid #667eea;
+  color: #667eea;
+  background: white;
+}
+
+.navbar .btn-outline-dark:nth-of-type(2):hover {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: transparent;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+/* ================================
+   PROFILE BUTTON - When logged in
+   ================================ */
+.navbar .btn-outline-dark:has(~ .btn-outline-dark),
+.navbar .btn-outline-dark:first-of-type {
+  border: 2px solid #10b981;
+  color: #10b981;
+  background: white;
+}
+
+.navbar .btn-outline-dark:has(~ .btn-outline-dark):hover,
+.navbar .btn-outline-dark:first-of-type:hover {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border-color: transparent;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+}
+
+/* ================================
+   LOGOUT BUTTON - Danger action
+   ================================ */
+.navbar .btn-outline-dark:last-of-type {
+  border: 2px solid #ef4444;
+  color: #ef4444;
+  background: white;
+}
+
+.navbar .btn-outline-dark:last-of-type:hover {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border-color: transparent;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
+}
+
+/* ================================
+   BUTTON ACTIVE STATE - When clicked
+   ================================ */
+.navbar .btn:active {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* ================================
+   BUTTON GROUP SPACING
+   ================================ */
+.ml-auto {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* ================================
+   MOBILE RESPONSIVENESS - Works on phones
+   ================================ */
+@media (max-width: 768px) {
+  .navbar {
+    padding: 0.75rem 1rem !important;
+  }
+  
+  .navbar .btn {
+    padding: 0.5rem 1.25rem !important;
+    font-size: 0.85rem;
+  }
+  
+  .ml-auto {
+    gap: 0.5rem;
+  }
+  
+  .logo {
+    width: 60px !important;
+    height: 60px !important;
+  }
+}
+
+/* ================================
+   SMOOTH ANIMATIONS
+   ================================ */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.ml-auto > * {
+  animation: slideIn 0.5s ease-out backwards;
+}
+
+.ml-auto > *:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.ml-auto > *:nth-child(2) {
+  animation-delay: 0.2s;
+}
