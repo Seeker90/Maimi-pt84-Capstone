@@ -7,7 +7,7 @@ export const CustomerProfile = () => {
     const [services, setServices] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
-    const [filter, setFilter] = useState("all"); 
+    const [filter, setFilter] = useState("all");
 
     useEffect(() => {
         fetchCustomerServices();
@@ -16,10 +16,23 @@ export const CustomerProfile = () => {
     const fetchCustomerServices = async () => {
         setIsLoading(true);
         setError("");
-        
+
         try {
-            const data = await customerAPI.getCustomerBookings();
-            setServices(data);
+            const token = sessionStorage.getItem("token");
+          
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/customer/bookings`, {
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setServices(data);
+            } else {
+                setError("Failed to load services. Please try again.");
+            }
         } catch (error) {
             console.error("Error fetching services:", error);
             setError(error.message || "Unable to load your bookings");

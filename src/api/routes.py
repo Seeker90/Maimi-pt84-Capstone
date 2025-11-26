@@ -20,6 +20,7 @@ from api.sms_service import sms_service
 api = Blueprint("api", __name__)
 CORS(api)
 
+
 @api.route("/login", methods=["POST"])
 def create_token():
     username = request.json.get("username", None)
@@ -44,7 +45,7 @@ def create_token():
     access_token = create_access_token(identity=str(user.id))
 
     return jsonify({
-        "message": "Login successful", 
+        "message": "Login successful",
         "token": access_token,
         "role": user.role,
         "user_id": user.id
@@ -93,15 +94,17 @@ def signup():
 
     return jsonify({"message": "User created successfully!"}), 201
 
+
 def get_current_provider():
     user_id_str = get_jwt_identity()
     user_id = int(user_id_str)
     provider = Provider.query.filter_by(user_id=user_id).first()
-    
+
     if not provider:
         return jsonify({'message': 'Provider profile not found'}), 404
-    
+
     return provider
+
 
 @api.route('/provider/profile', methods=['GET'])
 @jwt_required()
@@ -110,10 +113,10 @@ def get_provider_profile():
     user_id_str = get_jwt_identity()
     user_id = int(user_id_str)
     provider = Provider.query.filter_by(user_id=user_id).first()
-    
+
     if not provider:
         return jsonify({'message': 'Provider profile not found'}), 404
-    
+
     return jsonify(provider.serialize()), 200
 
 
@@ -143,6 +146,7 @@ def update_provider_profile():
         "provider": provider.serialize()
     }), 200
 
+
 @api.route('/provider/location', methods=['PUT'])
 @jwt_required()
 @provider_required()
@@ -150,12 +154,12 @@ def update_provider_location():
     user_id_str = get_jwt_identity()
     user_id = int(user_id_str)
     provider = Provider.query.filter_by(user_id=user_id).first()
-    
+
     if not provider:
         return jsonify({'message': 'Provider profile not found'}), 404
-    
+
     data = request.get_json()
-    
+
     if 'latitude' in data and 'longitude' in data:
         provider.latitude = data['latitude']
         provider.longitude = data['longitude']
@@ -167,13 +171,14 @@ def update_provider_location():
         provider.state = data['state']
     if 'zipCode' in data:
         provider.zip_code = data['zipCode']
-    
+
     db.session.commit()
-    
+
     return jsonify({
         'message': 'Location updated successfully',
         'provider': provider.serialize()
     }), 200
+
 
 @api.route("/provider/services", methods=["GET"])
 @jwt_required()
@@ -186,6 +191,7 @@ def get_provider_services():
     services = Service.query.filter_by(provider_id=provider.id).all()
     return jsonify([s.serialize() for s in services]), 200
 
+
 @api.route('/provider/services', methods=['POST'])
 @jwt_required()
 @provider_required()
@@ -193,21 +199,21 @@ def create_service():
     user_id_str = get_jwt_identity()
     user_id = int(user_id_str)
     provider = Provider.query.filter_by(user_id=user_id).first()
-    
+
     if not provider:
         return jsonify({'message': 'Provider profile not found'}), 404
-    
+
     data = request.get_json()
-    
+
     required_fields = ['name', 'category', 'price']
     for field in required_fields:
         if field not in data:
             return jsonify({'message': f'{field} is required'}), 400
- 
+
     valid_categories = ['pets', 'beauty', 'vehicles', 'home']
     if data['category'] not in valid_categories:
         return jsonify({'message': 'Invalid category'}), 400
-    
+
     new_service = Service(
         provider_id=provider.id,
         name=data['name'],
@@ -217,10 +223,10 @@ def create_service():
         duration=data.get('duration'),
         is_active=data.get('isActive', True)
     )
-    
+
     db.session.add(new_service)
     db.session.commit()
-    
+
     return jsonify({
         'message': 'Service created successfully',
         'service': new_service.serialize()
@@ -235,7 +241,8 @@ def update_service(service_id):
     if not provider:
         return jsonify({"message": "Provider profile not found"}), 404
 
-    service = Service.query.filter_by(id=service_id, provider_id=provider.id).first()
+    service = Service.query.filter_by(
+        id=service_id, provider_id=provider.id).first()
     if not service:
         return jsonify({"message": "Service not found"}), 404
 
@@ -261,7 +268,8 @@ def delete_service(service_id):
     if not provider:
         return jsonify({"message": "Provider profile not found"}), 404
 
-    service = Service.query.filter_by(id=service_id, provider_id=provider.id).first()
+    service = Service.query.filter_by(
+        id=service_id, provider_id=provider.id).first()
     if not service:
         return jsonify({"message": "Service not found"}), 404
 
@@ -269,6 +277,7 @@ def delete_service(service_id):
     db.session.commit()
 
     return jsonify({"message": "Service deleted successfully"}), 200
+
 
 @api.route("/provider/bookings", methods=["GET"])
 @jwt_required()
@@ -343,7 +352,8 @@ def get_booking_details(booking_id):
     if not provider:
         return jsonify({"message": "Provider profile not found"}), 404
 
-    booking = Booking.query.filter_by(id=booking_id, provider_id=provider.id).first()
+    booking = Booking.query.filter_by(
+        id=booking_id, provider_id=provider.id).first()
     if not booking:
         return jsonify({"message": "Booking not found"}), 404
 
@@ -358,7 +368,8 @@ def update_booking_status(booking_id):
     if not provider:
         return jsonify({"message": "Provider profile not found"}), 404
 
-    booking = Booking.query.filter_by(id=booking_id, provider_id=provider.id).first()
+    booking = Booking.query.filter_by(
+        id=booking_id, provider_id=provider.id).first()
     if not booking:
         return jsonify({"message": "Booking not found"}), 404
 
@@ -377,6 +388,7 @@ def update_booking_status(booking_id):
         "message": "Booking status updated successfully",
         "booking": booking.serialize()
     }), 200
+
 
 @api.route("/provider/earnings", methods=["GET"])
 @jwt_required()
@@ -414,17 +426,18 @@ def get_earnings():
         "recentTransactions": [b.serialize() for b in recent]
     }), 200
 
+
 @api.route('/services', methods=['GET'])
 def get_all_services():
     category = request.args.get('category')
-    
+
     query = Service.query.filter_by(is_active=True)
-    
+
     if category:
         query = query.filter_by(category=category)
-    
+
     services = query.all()
-    
+
     results = []
     for service in services:
         service_data = service.serialize()
@@ -439,40 +452,45 @@ def get_all_services():
             'rating': service.provider.rating
         }
         results.append(service_data)
-    
+
     return jsonify(results), 200
+
 
 @api.route('/providers/<int:provider_id>', methods=['GET'])
 def get_provider_details(provider_id):
     provider = Provider.query.get(provider_id)
-    
+
     if not provider:
         return jsonify({'message': 'Provider not found'}), 404
-    
+
     return jsonify(provider.serialize()), 200
+
 
 @api.route('/providers/<int:provider_id>/services', methods=['GET'])
 def get_provider_services_public(provider_id):
     provider = Provider.query.get(provider_id)
-    
+
     if not provider:
         return jsonify({'message': 'Provider not found'}), 404
-    
-    services = Service.query.filter_by(provider_id=provider_id, is_active=True).all()
-    
+
+    services = Service.query.filter_by(
+        provider_id=provider_id, is_active=True).all()
+
     return jsonify([service.serialize() for service in services]), 200
+
 
 def haversine_distance(lat1, lon1, lat2, lon2):
     lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
-    
+
     dlon = lon2 - lon1
     dlat = lat2 - lat1
     a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
     c = 2 * asin(sqrt(a))
-    
+
     r = 3956
-    
+
     return c * r
+
 
 @api.route('/services/nearby', methods=['GET'])
 def get_nearby_services():
@@ -482,29 +500,29 @@ def get_nearby_services():
         user_lon = float(request.args.get('lon'))
     except (TypeError, ValueError):
         return jsonify({'message': 'Valid latitude and longitude required'}), 400
-    
+
     radius = float(request.args.get('radius', 25))
     category = request.args.get('category')
-    
+
     query = Service.query.filter_by(is_active=True)
-    
+
     if category:
         query = query.filter_by(category=category)
-    
+
     services = query.all()
-    
+
     nearby_services = []
     for service in services:
         provider = service.provider
-        
+
         if not provider.latitude or not provider.longitude:
             continue
-        
+
         distance = haversine_distance(
             user_lat, user_lon,
             provider.latitude, provider.longitude
         )
-        
+
         if distance <= radius:
             service_data = service.serialize()
             service_data['provider'] = {
@@ -519,9 +537,9 @@ def get_nearby_services():
                 'distance': round(distance, 1)
             }
             nearby_services.append(service_data)
-    
+
     nearby_services.sort(key=lambda x: x['provider']['distance'])
-    
+
     return jsonify(nearby_services), 200
 
 
@@ -534,24 +552,24 @@ def create_booking():
     """
     user_id_str = get_jwt_identity()
     user_id = int(user_id_str)
-    
+
     customer = Customer.query.filter_by(user_id=user_id).first()
     if not customer:
         return jsonify({'message': 'Customer profile not found'}), 404
-    
+
     data = request.get_json() or {}
-    
+
     # Validate required fields
     required_fields = ['service_id']
     if not all(data.get(field) for field in required_fields):
         return jsonify({'message': 'Service ID is required'}), 400
-    
+
     service = Service.query.get(data['service_id'])
     if not service:
         return jsonify({'message': 'Service not found'}), 404
-    
+
     provider = service.provider
-    
+
     # Create booking
     new_booking = Booking(
         customer_id=customer.id,
@@ -562,10 +580,10 @@ def create_booking():
         status='pending',
         total_price=service.price
     )
-    
+
     db.session.add(new_booking)
     db.session.flush()
-    
+
     try:
         # Send SMS to customer with provider details
         if customer.phone:
@@ -575,7 +593,7 @@ def create_booking():
                 provider.phone or 'Not provided',
                 provider.user.email
             )
-        
+
         # Send SMS to provider with customer details
         if provider.phone:
             sms_service.send_booking_notification_to_provider(
@@ -584,27 +602,62 @@ def create_booking():
                 customer.address or 'Not provided',
                 service.name
             )
-        
+
         db.session.commit()
-        
+
         return jsonify({
             'message': 'Booking created successfully and SMS notifications sent',
             'booking': new_booking.serialize()
         }), 201
-        
+
     except ValueError as e:
         db.session.rollback()
         print(f"SMS Error: {str(e)}")
         # Still create the booking even if SMS fails
         db.session.add(new_booking)
         db.session.commit()
-        
+
         return jsonify({
             'message': 'Booking created but SMS notification failed',
             'booking': new_booking.serialize(),
             'sms_error': str(e)
         }), 201
-        
+
     except Exception as e:
         db.session.rollback()
         return jsonify({'message': f'Error creating booking: {str(e)}'}), 500
+
+
+@api.route('/customer/bookings', methods=['GET'])
+@jwt_required()
+@customer_required()
+def get_customer_bookings():
+    """Get all bookings for the current customer"""
+    user_id_str = get_jwt_identity()
+    user_id = int(user_id_str)
+
+    customer = Customer.query.filter_by(user_id=user_id).first()
+    if not customer:
+        return jsonify({'message': 'Customer profile not found'}), 404
+
+    # Get all bookings for this customer
+    bookings = Booking.query.filter_by(customer_id=customer.id).order_by(
+        Booking.booking_date.desc(),
+        Booking.booking_time.desc()
+    ).all()
+
+    # Return bookings with service and provider details
+    result = []
+    for booking in bookings:
+        booking_data = booking.serialize()
+        booking_data['service'] = booking.service.serialize()
+        booking_data['provider'] = {
+            'id': booking.provider.id,
+            'name': booking.provider.name,
+            'businessName': booking.provider.business_name,
+            'phone': booking.provider.phone,
+            'email': booking.provider.user.email
+        }
+        result.append(booking_data)
+
+    return jsonify(result), 200
