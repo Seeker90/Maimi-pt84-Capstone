@@ -300,6 +300,49 @@ def get_provider_bookings():
 
     return jsonify([b.serialize() for b in bookings]), 200
 
+@api.route("/customer/bookings", methods=["GET"])
+@jwt_required()
+@customer_required()
+def get_customer_bookings():
+    """
+    Get all bookings for the logged-in customer with service and provider details
+    """
+    user_id_str = get_jwt_identity()
+    user_id = int(user_id_str)
+    
+    customer = Customer.query.filter_by(user_id=user_id).first()
+    if not customer:
+        return jsonify({'message': 'Customer profile not found'}), 404
+    
+    bookings = Booking.query.filter_by(customer_id=customer.id).order_by(
+        Booking.booking_date.desc(),
+        Booking.booking_time.desc()
+    ).all()
+    
+    bookings_data = []
+    for booking in bookings:
+        service = booking.service
+        provider = booking.provider
+        
+        if booking.booking_date and booking.booking_time:
+            service_datetime = f"{booking.booking_date.isoformat()}T{booking.booking_time.isoformat()}"
+        else:
+            service_datetime = ""
+        
+        booking_data = {
+            'id': booking.id,
+            'serviceType': service.category if service else 'Unknown',
+            'providerName': provider.name if provider else 'Unknown',
+            'description': service.description if service else '',
+            'serviceDate': service_datetime,
+            'price': float(service.price) if service else 0,
+            'duration': float(service.duration) if service and service.duration else 0,
+            'status': booking.status,
+            'rating': None
+        }
+        bookings_data.append(booking_data)
+    
+    return jsonify(bookings_data), 200
 
 @api.route("/provider/bookings/<int:booking_id>", methods=["GET"])
 @jwt_required()

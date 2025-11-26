@@ -66,12 +66,12 @@
         },
         "diagrams": {
             "hashes": [
-                "sha256:367b3056bc8875b5a32dcf66c7aad961cb83527b8f345dced82f17ee82781f72",
-                "sha256:41c5c03e1317ada0a64287f704e5e9d9c8794addce96b66dd831a536aa7e6507"
+                "sha256:87480ba0b2d26987a69f7d553aa0cb1cebf1406adc03fef7031bdfff026bfc51",
+                "sha256:90698eaa74c027dfffd8306ba7f08ee543959205024050a6357f34eae9961345"
             ],
             "index": "pypi",
-            "markers": "python_version >= '3.9' and python_version < '4.0'",
-            "version": "==0.24.4"
+            "markers": "python_version ~= '3.9'",
+            "version": "==0.25.1"
         },
         "distlib": {
             "hashes": [
@@ -392,11 +392,11 @@
         },
         "pre-commit": {
             "hashes": [
-                "sha256:b35ea52957cbf83dcc5d8ee636cbead8624e3a15fbfa61a370e42158ac8a5813",
-                "sha256:f0233ebab440e9f17cabbb558706eb173d19ace965c68cdce2c081042b4fab15"
+                "sha256:25e2ce09595174d9c97860a95609f9f852c0614ba602de3561e267547f2335e1",
+                "sha256:dc5a065e932b19fc1d4c653c6939068fe54325af8e741e74e88db4d28a4dd66b"
             ],
             "markers": "python_version >= '3.10'",
-            "version": "==4.4.0"
+            "version": "==4.5.0"
         },
         "psycopg2-binary": {
             "hashes": [
