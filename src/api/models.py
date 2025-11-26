@@ -156,3 +156,7 @@ class Booking(db.Model):
             'notes': self.notes,
             'createdAt': self.created_at.isoformat()
         }
+
+
+
+        
