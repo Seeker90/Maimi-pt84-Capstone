@@ -278,10 +278,6 @@
   height: auto;
 }
 
-.about-us img:hover {
-  transform: scale(1.05) rotate(2deg);
-}
-
 /* ================================
    SERVICES SECTION - The services grid
    ================================ */
