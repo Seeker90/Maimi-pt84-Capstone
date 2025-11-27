@@ -9,9 +9,7 @@ import { Layout } from "./pages/Layout";
 import { LandingPage } from "./pages/Landing";
 import Signup from "./pages/Signup";
 import { Login } from "./pages/Login";
-import { Home } from "./pages/Home";
 import { Single } from "./pages/Single";
-import { Demo } from "./pages/Demo";
 import { Services } from "./pages/Services";
 import PetsServicePage from "./pages/Pets";
 import VehiclesServicePage from "./pages/Vehicles";
@@ -34,13 +32,12 @@ export const router = createBrowserRouter(
             <Route path="/login" element={<Login />} />
             <Route path="/single/:theId" element={<Single />} />  {/* Dynamic route for single items */}
             <Route path="/services" element={<Services />} />
-            <Route path="/services/pets" element={<PetsServicePage />} />
-            <Route path="/services/vehicles" element={<VehiclesServicePage />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/provider-dashboard" element={<ProviderDashboard />} />
+            <Route path="/services/pets" element={<PetsServicePage />} />
+            <Route path="/services/vehicles" element={<VehiclesServicePage />} />
             <Route path="/services/beauty" element={<BeautyServicePage /> } />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/services/home-care" element={<Homecare /> } />
+            <Route path="/services/home" element={<Homecare /> } />
             <Route path="/profile" element={<CustomerProfile/>} />
         </Route>
     

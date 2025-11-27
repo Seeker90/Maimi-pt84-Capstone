@@ -626,38 +626,3 @@ def create_booking():
     except Exception as e:
         db.session.rollback()
         return jsonify({'message': f'Error creating booking: {str(e)}'}), 500
-
-
-@api.route('/customer/bookings', methods=['GET'])
-@jwt_required()
-@customer_required()
-def get_customer_bookings():
-    """Get all bookings for the current customer"""
-    user_id_str = get_jwt_identity()
-    user_id = int(user_id_str)
-
-    customer = Customer.query.filter_by(user_id=user_id).first()
-    if not customer:
-        return jsonify({'message': 'Customer profile not found'}), 404
-
-    # Get all bookings for this customer
-    bookings = Booking.query.filter_by(customer_id=customer.id).order_by(
-        Booking.booking_date.desc(),
-        Booking.booking_time.desc()
-    ).all()
-
-    # Return bookings with service and provider details
-    result = []
-    for booking in bookings:
-        booking_data = booking.serialize()
-        booking_data['service'] = booking.service.serialize()
-        booking_data['provider'] = {
-            'id': booking.provider.id,
-            'name': booking.provider.name,
-            'businessName': booking.provider.business_name,
-            'phone': booking.provider.phone,
-            'email': booking.provider.user.email
-        }
-        result.append(booking_data)
-
-    return jsonify(result), 200
