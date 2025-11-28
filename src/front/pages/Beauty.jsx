@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { customerAPI } from '../fetch';
 import { NearbySearch } from '../components/NearbySearch';
-import './../../lib/Services.css';
+import './../../lib/BeautyService.css';
 
 export default function BeautyServicePage() {
   const navigate = useNavigate();

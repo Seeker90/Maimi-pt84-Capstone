@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { customerAPI } from '../fetch';
 import { NearbySearch } from '../components/NearbySearch';
-import './../../lib/Services.css';
+import './../../lib/VehicleService.css';
 
 export default function VehiclesServicePage() {
   const navigate = useNavigate();
