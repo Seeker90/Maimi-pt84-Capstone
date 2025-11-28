@@ -3,18 +3,18 @@ import './../../lib/Services.css';
 
 export const Services = () => {
   const navigate = useNavigate();
-
+  
   const serviceCategories = [
-    { id: 'beauty', name: 'Beauty', icon: '💄' },
-    { id: 'home-care', name: 'Home Care', icon: '🏠' },
-    { id: 'pets', name: 'Pets', icon: '🐾' },
-    { id: 'vehicles', name: 'Vehicles', icon: '🚗' }
+    { id: 'beauty', name: 'Beauty', icon: '💄', gradient: 'gradient-pink-red' },
+    { id: 'home-care', name: 'Home Care', icon: '🏠', gradient: 'gradient-purple' },
+    { id: 'pets', name: 'Pets', icon: '🐾', gradient: 'gradient-cyan' },
+    { id: 'vehicles', name: 'Vehicles', icon: '🚗', gradient: 'gradient-pink-yellow' }
   ];
-
+  
   const handleCategoryClick = (categoryId) => {
     navigate(`/services/${categoryId}`);
   };
-
+  
   return (
     <div className="min-vh-100 bg-light">
       <main className="container py-5">
@@ -22,15 +22,17 @@ export const Services = () => {
         
         <div className="row justify-content-center g-4 py-4">
           {serviceCategories.map((category) => (
-            <div key={category.id} className="col-auto">
+            <div key={category.id} className="col-6 col-sm-4 col-md-3 col-lg-2">
               <div
-                className="card category-card border-dark border-2 text-center"
+                className={`card category-card h-100 text-center text-white border-0 ${category.gradient}`}
                 onClick={() => handleCategoryClick(category.id)}
-                style={{ width: '150px', height: '150px', cursor: 'pointer' }}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => e.key === 'Enter' && handleCategoryClick(category.id)}
               >
-                <div className="card-body d-flex flex-column justify-content-center align-items-center">
-                  <div className="fs-1 mb-2">{category.icon}</div>
-                  <p className="card-text fw-medium mb-0">{category.name}</p>
+                <div className="card-body d-flex flex-column justify-content-center align-items-center p-3">
+                  <div className="display-4 mb-2">{category.icon}</div>
+                  <p className="card-text fw-semibold mb-0">{category.name}</p>
                 </div>
               </div>
             </div>
