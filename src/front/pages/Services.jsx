@@ -6,7 +6,7 @@ export const Services = () => {
   
   const serviceCategories = [
     { id: 'beauty', name: 'Beauty', icon: '💄', gradient: 'gradient-pink-red' },
-    { id: 'home-care', name: 'Home Care', icon: '🏠', gradient: 'gradient-purple' },
+    { id: 'home', name: 'Home Care', icon: '🏠', gradient: 'gradient-purple' },
     { id: 'pets', name: 'Pets', icon: '🐾', gradient: 'gradient-cyan' },
     { id: 'vehicles', name: 'Vehicles', icon: '🚗', gradient: 'gradient-pink-yellow' }
   ];
