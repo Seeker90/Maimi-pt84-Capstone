@@ -1,89 +1,136 @@
 import os
-from twilio.rest import Client
-
-# Get Twilio credentials from environment
-TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID')
-TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN')
-TWILIO_PHONE_NUMBER = os.getenv('TWILIO_PHONE_NUMBER')
+import requests
 
 class SMSService:
-    """Service for sending SMS messages via Twilio"""
-    
     def __init__(self):
-        if not all([TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER]):
-            raise ValueError('Twilio credentials not configured in environment variables')
+        self.api_key = os.environ.get("TEXTBELT_API_KEY")
+        self.sender_name = os.environ.get("TEXTBELT_SENDER_NAME", "HomeCalls")
+        self.base_url = "https://textbelt.com"
         
-        self.client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
-        self.twilio_phone = TWILIO_PHONE_NUMBER
+        if not self.api_key:
+            raise ValueError("TEXTBELT_API_KEY is required")
     
     def send_sms(self, phone_number, message):
         """
-        Send an SMS message via Twilio
+        Send SMS via TextBelt paid API
         
         Args:
-            phone_number (str): Phone number to send to (e.g., '+15551234567' or '5551234567')
+            phone_number (str): Phone number (10-digit for US or E.164 format)
             message (str): Message content
             
         Returns:
-            dict: Response with message SID
+            dict: Response from TextBelt API
             
-        Raises:
-            ValueError: If request fails
+        Example:
+            {
+                "success": true,
+                "quotaRemaining": 40,
+                "textId": 12345
+            }
         """
-        
-        if not phone_number.startswith('+'):
-            phone_number = '+1' + phone_number.replace('-', '').replace(' ', '').replace('(', '').replace(')', '')
-        
         try:
-            sms = self.client.messages.create(
-                body=message,
-                from_=self.twilio_phone,
-                to=phone_number
-            )
+            # TextBelt API endpoint
+            url = f"{self.base_url}/text"
             
-            return {
-                'success': True,
-                'message': 'SMS sent successfully',
-                'message_sid': sms.sid,
-                'status': sms.status
+            # Prepare request payload
+            payload = {
+                "phone": phone_number,
+                "message": message,
+                "key": self.api_key,
+                "sender": self.sender_name  # Optional, for regulatory purposes
             }
             
+            # Send POST request
+            response = requests.post(url, data=payload)
+            result = response.json()
+            
+            if result.get("success"):
+                print(f"✓ SMS sent successfully to {phone_number}")
+                print(f"  - Text ID: {result.get('textId')}")
+                print(f"  - Quota remaining: {result.get('quotaRemaining')}")
+                return result
+            else:
+                error_msg = result.get("error", "Unknown error")
+                print(f"✗ SMS failed: {error_msg}")
+                raise ValueError(f"TextBelt error: {error_msg}")
+                
+        except requests.exceptions.RequestException as e:
+            print(f"✗ Network error: {str(e)}")
+            raise ValueError(f"Failed to send SMS: {str(e)}")
+    
+    def check_quota(self):
+        """
+        Check remaining SMS quota
+        
+        Returns:
+            dict: {"success": true, "quotaRemaining": 98}
+        """
+        try:
+            url = f"{self.base_url}/quota/{self.api_key}"
+            response = requests.get(url)
+            result = response.json()
+            
+            if result.get("success"):
+                quota = result.get("quotaRemaining", 0)
+                print(f"Remaining quota: {quota} SMS")
+                return result
+            else:
+                raise ValueError("Failed to check quota")
+                
         except Exception as e:
-            print(f"Twilio SMS sending failed: {str(e)}")
-            raise ValueError(f'SMS sending failed: {str(e)}')
+            print(f"Error checking quota: {str(e)}")
+            raise
+    
+    def check_status(self, text_id):
+        """
+        Check delivery status of sent SMS
+        
+        Args:
+            text_id (str): The textId from send_sms response
+            
+        Returns:
+            dict: {"status": "DELIVERED|SENT|SENDING|FAILED|UNKNOWN"}
+        """
+        try:
+            url = f"{self.base_url}/status/{text_id}"
+            response = requests.get(url)
+            result = response.json()
+            
+            status = result.get("status", "UNKNOWN")
+            print(f"SMS {text_id} status: {status}")
+            return result
+                
+        except Exception as e:
+            print(f"Error checking status: {str(e)}")
+            raise
     
     def send_booking_confirmation_to_customer(self, customer_phone, provider_name, provider_phone, provider_email):
         """
-        Send booking confirmation SMS to customer with provider details
-        
-        Args:
-            customer_phone (str): Customer phone number
-            provider_name (str): Provider's name
-            provider_phone (str): Provider's phone number
-            provider_email (str): Provider's email
-            
-        Returns:
-            dict: Response from Twilio
+        Send booking confirmation SMS to customer
         """
-        message = f"Booking Confirmed!\n\nProvider: {provider_name}\nPhone: {provider_phone}\nEmail: {provider_email}\n\nThank you for booking with us!"
+        message = f"""HomeCalls Booking Confirmed!
+
+Service provider: {provider_name}
+Contact: {provider_phone}
+Email: {provider_email}
+
+Thank you for booking with HomeCalls!"""
         
         return self.send_sms(customer_phone, message)
     
     def send_booking_notification_to_provider(self, provider_phone, customer_name, customer_address, service_name):
         """
-        Send booking notification SMS to provider with customer details
-        
-        Args:
-            provider_phone (str): Provider phone number
-            customer_name (str): Customer's name
-            customer_address (str): Customer's address
-            service_name (str): Service booked
-            
-        Returns:
-            dict: Response from Twilio
+        Send new booking notification SMS to provider
         """
-        message = f"New Booking!\n\nCustomer: {customer_name}\nAddress: {customer_address}\nService: {service_name}\n\nPlease contact the customer to confirm."
+        message = f"""New Booking on HomeCalls!
+
+Customer: {customer_name}
+Address: {customer_address}
+Service: {service_name}
+
+Please contact the customer to confirm."""
         
         return self.send_sms(provider_phone, message)
 
+# Create singleton instance
 sms_service = SMSService()
