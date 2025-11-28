@@ -1,0 +1,278 @@
+.beauty-category-card {
+  transition: all 0.3s ease;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.beauty-category-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 12px 24px rgba(102, 126, 234, 0.4);
+}
+
+.beauty-service-container {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+  padding-bottom: 3rem;
+}
+
+.beauty-service-content {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.beauty-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.beauty-filter-controls {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.beauty-filter-select-wrapper {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+}
+
+.beauty-filter-select {
+  appearance: none;
+  padding: 0.75rem 1.25rem;
+  padding-right: 2.5rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  background-color: white;
+  font-size: 0.95rem;
+  width: 100%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.beauty-filter-select:hover {
+  border-color: #667eea;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+}
+
+.beauty-filter-select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.beauty-filter-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.beauty-filter-select-arrow {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-size: 0.75rem;
+  color: #667eea;
+}
+
+.beauty-provider-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.beauty-provider-card {
+  border: none;
+  padding: 2rem;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.beauty-provider-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.beauty-provider-card-content {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.beauty-provider-image-placeholder {
+  width: 7rem;
+  height: 7rem;
+  border-radius: 12px;
+  border: none;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.beauty-provider-image-inner {
+  width: 4.5rem;
+  height: 4.5rem;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  transform: rotate(45deg);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.beauty-provider-info {
+  flex: 1;
+  min-width: 250px;
+}
+
+.beauty-provider-name {
+  font-weight: 700;
+  color: #1f2937;
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.beauty-provider-service {
+  font-size: 1rem;
+  color: #6b7280;
+  margin-bottom: 0.75rem;
+  font-weight: 500;
+}
+
+.beauty-provider-description {
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin-bottom: 0.75rem;
+  line-height: 1.5;
+}
+
+.beauty-provider-price {
+  font-size: 1.25rem;
+  color: #10b981;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.beauty-provider-duration {
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin-bottom: 1rem;
+}
+
+.beauty-dates-available-btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.beauty-dates-available-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.beauty-dates-available-btn:active {
+  transform: translateY(0);
+}
+
+.beauty-dates-available-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.beauty-service-area {
+  width: 14rem;
+  background: #f9fafb;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.beauty-service-area-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #374151;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.beauty-service-area-text {
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+}
+
+.beauty-contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 200px;
+}
+
+.beauty-contact-input {
+  padding: 0.75rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  background-color: #f9fafb;
+  cursor: default;
+  color: #374151;
+  transition: all 0.2s ease;
+}
+
+.beauty-contact-input:read-only {
+  background-color: #f9fafb;
+  color: #374151;
+}
+
+.beauty-spinner-border {
+  color: #667eea !important;
+}
+
+.beauty-badge {
+  border-radius: 6px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.beauty-badge.bg-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+}
+
+@media (max-width: 768px) {
+  .beauty-provider-card-content {
+    flex-direction: column;
+  }
+  
+  .beauty-service-area {
+    width: 100%;
+  }
+  
+  .beauty-contact-info {
+    width: 100%;
+  }
+  
+  .beauty-filter-controls {
+    flex-direction: column;
+  }
+  
+  .beauty-filter-select-wrapper {
+    width: 100%;
+  }
+}
