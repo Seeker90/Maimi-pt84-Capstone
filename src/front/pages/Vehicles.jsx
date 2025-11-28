@@ -15,10 +15,10 @@ export default function VehiclesServicePage() {
   const [bookingInProgress, setBookingInProgress] = useState(null);
 
   const serviceCategories = [
-    { id: 'beauty', name: 'Beauty', icon: '💄' },
-    { id: 'home', name: 'Home Care', icon: '🏠' },
-    { id: 'pets', name: 'Pets', icon: '🐾' },
-    { id: 'vehicles', name: 'Vehicles', icon: '🚗' }
+    { id: 'beauty', name: 'Beauty', icon: '💄', gradient: 'gradient-pink-red' },
+    { id: 'home', name: 'Home Care', icon: '🏠', gradient: 'gradient-purple' },
+    { id: 'pets', name: 'Pets', icon: '🐾', gradient: 'gradient-cyan' },
+    { id: 'vehicles', name: 'Vehicles', icon: '🚗', gradient: 'gradient-pink-yellow' }
   ];
 
   useEffect(() => {
@@ -82,7 +82,6 @@ export default function VehiclesServicePage() {
     try {
       const result = await customerAPI.createBooking(serviceId);
       alert('Booking confirmed! SMS sent to both parties.');
-      // Optionally refresh services or navigate
     } catch (error) {
       console.error('Booking error:', error);
       alert('Failed to complete booking. Please try again.');
@@ -125,7 +124,7 @@ export default function VehiclesServicePage() {
 
   if (isLoading) {
     return (
-      <div className="d-flex justify-content-center align-items-center" style={{minHeight: "100vh"}}>
+      <div className="d-flex justify-content-center align-items-center min-vh-100">
         <div className="spinner-border text-primary" role="status">
           <span className="visually-hidden">Loading...</span>
         </div>
@@ -136,20 +135,22 @@ export default function VehiclesServicePage() {
   return (
     <>
       <div className="bg-light">
-        <main className="vehicles-container py-5">
+        <main className="container py-5">
           <h1 className="text-center display-1 fw-light mb-5">Vehicles</h1>
           
           <div className="row justify-content-center g-4 py-4">
             {serviceCategories.map((category) => (
-              <div key={category.id} className="col-auto">
+              <div key={category.id} className="col-6 col-sm-4 col-md-3 col-lg-2">
                 <div
-                  className="card category-card border-dark border-2 text-center"
+                  className={`card category-card h-100 text-center text-white border-0 ${category.gradient}`}
                   onClick={() => handleCategoryClick(category.id)}
-                  style={{ width: '150px', height: '150px', cursor: 'pointer' }}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => e.key === 'Enter' && handleCategoryClick(category.id)}
                 >
-                  <div className="card-body d-flex flex-column justify-content-center align-items-center">
-                    <div className="fs-1 mb-2">{category.icon}</div>
-                    <p className="card-text fw-medium mb-0">{category.name}</p>
+                  <div className="card-body d-flex flex-column justify-content-center align-items-center p-3">
+                    <div className="display-4 mb-2">{category.icon}</div>
+                    <p className="card-text fw-semibold mb-0">{category.name}</p>
                   </div>
                 </div>
               </div>
@@ -157,10 +158,9 @@ export default function VehiclesServicePage() {
           </div>
         </main>
       </div>
-   
-      <div className="vehicles-service-container">
-        <div className="vehicles-service-content">
-          <div className="container mb-4">
+      <div className="services-section bg-gradient-light min-vh-100 pb-5">
+        <div className="container py-4">
+          <div className="mb-4">
             <NearbySearch 
               onSearchResults={handleNearbySearchResults}
               category="vehicles"
@@ -180,53 +180,48 @@ export default function VehiclesServicePage() {
               </div>
             )}
           </div>
-
-          <div className="filter-controls">
-            <div className="filter-select-wrapper">
+          <div className="row g-3 mb-4">
+            <div className="col-12 col-md-4">
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="filter-select"
+                className="form-select filter-select"
               >
                 <option>All Categories</option>
                 <option>Vehicle Wash</option>
                 <option>Vehicle Detail</option>
                 <option>Oil Change</option>
               </select>
-              <span className="filter-select-arrow">▼</span>
             </div>
 
-            <div className="filter-select-wrapper">
+            <div className="col-12 col-md-4">
               <select
                 value={sortByLocation}
                 onChange={(e) => setSortByLocation(e.target.value)}
-                className="filter-select"
+                className="form-select filter-select"
                 disabled={searchMode === 'nearby'}
               >
                 <option>Location</option>
                 <option>Nearest First</option>
                 <option>Farthest First</option>
               </select>
-              <span className="filter-select-arrow">▼</span>
             </div>
 
-            <div className="filter-select-wrapper">
+            <div className="col-12 col-md-4">
               <select
                 value={sortByPrice}
                 onChange={(e) => setSortByPrice(e.target.value)}
-                className="filter-select"
+                className="form-select filter-select"
               >
                 <option>Price</option>
                 <option>Low to High</option>
                 <option>High to Low</option>
               </select>
-              <span className="filter-select-arrow">▼</span>
             </div>
           </div>
-
-          <div className="provider-cards">
+          <div className="d-flex flex-column gap-4">
             {providers.length === 0 ? (
-              <div className="text-center p-5">
+              <div className="text-center py-5">
                 <h3>No services available</h3>
                 <p className="text-muted">
                   {searchMode === 'nearby' 
@@ -236,82 +231,88 @@ export default function VehiclesServicePage() {
               </div>
             ) : (
               providers.map((service) => (
-                <div key={service.id} className="provider-card">
-                  <div className="provider-card-content">
-                    <div className="provider-image-placeholder">
-                      <div className="provider-image-inner"></div>
-                    </div>
-
-                    <div className="provider-info">
-                      {searchMode === 'nearby' && service.provider.distance && (
-                        <span className="badge bg-success mb-2">
-                          📍 {service.provider.distance} miles away
-                        </span>
-                      )}
-                      
-                      <h3 className="provider-name">
-                        Company Name: {service.provider.businessName || service.provider.name}
-                      </h3>
-                      <p className="provider-service">
-                        Service: {service.name}
-                      </p>
-                      <p className="provider-description text-muted">
-                        {service.description}
-                      </p>
-                      <p className="provider-price">
-                        Price: ${service.price}
-                      </p>
-                      {service.duration && (
-                        <p className="provider-duration text-muted">
-                          Duration: {service.duration} minutes
-                        </p>
-                      )}
-                      <button 
-                        className="dates-available-btn"
-                        onClick={() => handleBookNow(service.id)}
-                        disabled={bookingInProgress === service.id}
-                      >
-                        {bookingInProgress === service.id ? (
-                          <>
-                            <span className="spinner-border spinner-border-sm me-2" />
-                            Booking...
-                          </>
-                        ) : (
-                          'Book Now'
+                <div key={service.id} className="card provider-card border-0 shadow-sm">
+                  <div className="card-body p-4">
+                    <div className="row g-4">
+                      <div className="col-auto">
+                        <div className="provider-image-placeholder rounded-3 d-flex align-items-center justify-content-center">
+                          <div className="provider-image-inner"></div>
+                        </div>
+                      </div>
+                      <div className="col-12 col-md">
+                        {searchMode === 'nearby' && service.provider.distance && (
+                          <span className="badge bg-success mb-2">
+                            📍 {service.provider.distance} miles away
+                          </span>
                         )}
-                      </button>
-                    </div>
-
-                    <div className="service-area">
-                      <p className="service-area-title">Service Area:</p>
-                      <p className="service-area-text">
-                        State: {service.provider.state || 'N/A'}
-                      </p>
-                      <p className="service-area-text">
-                        City: {service.provider.city || 'N/A'}
-                      </p>
-                      {service.provider.rating > 0 && (
-                        <p className="service-area-text">
-                          Rating: ⭐ {service.provider.rating.toFixed(1)}
+                        
+                        <h3 className="h5 fw-bold text-dark mb-2">
+                          Company Name: {service.provider.businessName || service.provider.name}
+                        </h3>
+                        <p className="text-secondary fw-medium mb-2">
+                          Service: {service.name}
                         </p>
-                      )}
-                    </div>
-
-                    <div className="contact-info">
-                      <input
-                        type="text"
-                        value={service.provider.email || 'No email provided'}
-                        readOnly
-                        className="contact-input"
-                        placeholder="Provider Email"
-                      />
-                      <input
-                        type="text"
-                        value={service.provider.phone || 'No phone provided'}
-                        readOnly
-                        className="contact-input"
-                        placeholder="Provider Phone"
-                      />
+                        <p className="text-muted small mb-2">
+                          {service.description}
+                        </p>
+                        <p className="h5 text-success fw-bold mb-2">
+                          Price: ${service.price}
+                        </p>
+                        {service.duration && (
+                          <p className="text-muted small mb-3">
+                            Duration: {service.duration} minutes
+                          </p>
+                        )}
+                        <button 
+                          className="btn btn-book-now"
+                          onClick={() => handleBookNow(service.id)}
+                          disabled={bookingInProgress === service.id}
+                        >
+                          {bookingInProgress === service.id ? (
+                            <>
+                              <span className="spinner-border spinner-border-sm me-2" />
+                              Booking...
+                            </>
+                          ) : (
+                            'Book Now'
+                          )}
+                        </button>
+                      </div>
+                      <div className="col-12 col-lg-auto">
+                        <div className="bg-light rounded-3 p-3 service-area-box">
+                          <p className="small fw-bold text-uppercase text-secondary mb-2">Service Area</p>
+                          <p className="small text-muted mb-1">
+                            State: {service.provider.state || 'N/A'}
+                          </p>
+                          <p className="small text-muted mb-1">
+                            City: {service.provider.city || 'N/A'}
+                          </p>
+                          {service.provider.rating > 0 && (
+                            <p className="small text-muted mb-0">
+                              Rating: ⭐ {service.provider.rating.toFixed(1)}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="col-12 col-lg-auto">
+                        <div className="d-flex flex-column gap-2">
+                          <input
+                            type="text"
+                            value={service.provider.email || 'No email provided'}
+                            readOnly
+                            className="form-control form-control-sm bg-light"
+                            placeholder="Provider Email"
+                          />
+                          <input
+                            type="text"
+                            value={service.provider.phone || 'No phone provided'}
+                            readOnly
+                            className="form-control form-control-sm bg-light"
+                            placeholder="Provider Phone"
+                          />
+                        </div>
+                      </div>
+                      
                     </div>
                   </div>
                 </div>
