@@ -1,3 +1,10 @@
+/* Gradient backgrounds - matching landing page */
+.gradient-purple { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.gradient-pink-red { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+.gradient-cyan { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+.gradient-pink-yellow { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+
+/* Category Cards */
 .category-card {
   min-height: 150px;
   cursor: pointer;
@@ -15,7 +22,61 @@
   outline-offset: 2px;
 }
 
-.gradient-purple { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-.gradient-pink-red { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-.gradient-cyan { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
-.gradient-pink-yellow { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+/* Recent Bookings Table */
+.service-icon-sm {
+  width: 2.5rem;
+  height: 2.5rem;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.table th {
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #6b7280;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.table td {
+  padding: 1rem 0.75rem;
+  vertical-align: middle;
+}
+
+.table-hover tbody tr:hover {
+  background-color: rgba(102, 126, 234, 0.05);
+}
+
+/* Rebook Button - neutral gradient */
+.btn-rebook {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-weight: 600;
+  border: none;
+  font-size: 0.875rem;
+  padding: 0.375rem 0.75rem;
+}
+
+.btn-rebook:hover {
+  color: white;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .table-responsive {
+    font-size: 0.875rem;
+  }
+  
+  .service-icon-sm {
+    width: 2rem;
+    height: 2rem;
+    font-size: 0.875rem;
+  }
+  
+  .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+}

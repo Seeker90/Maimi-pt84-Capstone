@@ -41,7 +41,6 @@ def create_token():
     if user.role != role:
         return jsonify({"message": f"You are not registered as a {role}"}), 403
 
-    # Convert user.id to string for JWT
     access_token = create_access_token(identity=str(user.id))
 
     return jsonify({
@@ -389,7 +388,6 @@ def update_booking_status(booking_id):
         "booking": booking.serialize()
     }), 200
 
-
 @api.route("/provider/earnings", methods=["GET"])
 @jwt_required()
 @provider_required()
@@ -570,7 +568,6 @@ def create_booking():
 
     provider = service.provider
 
-    # Create booking
     new_booking = Booking(
         customer_id=customer.id,
         provider_id=provider.id,
@@ -585,7 +582,6 @@ def create_booking():
     db.session.flush()
 
     try:
-        # Send SMS to customer with provider details
         if customer.phone:
             sms_service.send_booking_confirmation_to_customer(
                 customer.phone,
@@ -594,7 +590,6 @@ def create_booking():
                 provider.user.email
             )
 
-        # Send SMS to provider with customer details
         if provider.phone:
             sms_service.send_booking_notification_to_provider(
                 provider.phone,
@@ -613,7 +608,6 @@ def create_booking():
     except ValueError as e:
         db.session.rollback()
         print(f"SMS Error: {str(e)}")
-        # Still create the booking even if SMS fails
         db.session.add(new_booking)
         db.session.commit()
 
@@ -626,3 +620,33 @@ def create_booking():
     except Exception as e:
         db.session.rollback()
         return jsonify({'message': f'Error creating booking: {str(e)}'}), 500
+    
+
+@api.route('/bookings/recent', methods=['GET'])
+@jwt_required()
+def get_recent_bookings():
+    user_id = get_jwt_identity()
+    category = request.args.get('category', None)
+    
+    query = Booking.query.filter_by(customer_id=user_id)
+    
+    if category:
+        query = query.join(Service).filter(Service.category == category)
+    
+    bookings = query.order_by(Booking.created_at.desc()).limit(10).all()
+    
+    result = []
+    for b in bookings:
+        result.append({
+            'id': b.id,
+            'serviceId': b.service_id,
+            'serviceName': b.service.name,
+            'category': b.service.category,
+            'providerName': b.service.provider.business_name or b.service.provider.name,
+            'providerCity': b.service.provider.city,
+            'date': b.created_at.isoformat(),
+            'price': float(b.service.price),
+            'status': b.status
+        })
+    
+    return jsonify(result), 200
