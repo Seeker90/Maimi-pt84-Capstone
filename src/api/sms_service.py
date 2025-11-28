@@ -29,10 +29,10 @@ class SMSService:
             }
         """
         try:
-            # TextBelt API endpoint
+          
             url = f"{self.base_url}/text"
             
-            # Prepare request payload
+            
             payload = {
                 "phone": phone_number,
                 "message": message,
@@ -40,7 +40,7 @@ class SMSService:
                 "sender": self.sender_name  # Optional, for regulatory purposes
             }
             
-            # Send POST request
+         
             response = requests.post(url, data=payload)
             result = response.json()
             
