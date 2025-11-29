@@ -8,9 +8,16 @@ export const CustomerProfile = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
     const [filter, setFilter] = useState("all");
+    const [customerData, setCustomerData] = useState({
+        fullName: '',
+        phone: '',
+        address: ''
+    });
+    const [isUpdating, setIsUpdating] = useState(false);
 
     useEffect(() => {
         fetchCustomerServices();
+        fetchCustomerData();
     }, []);
 
     const fetchCustomerServices = async () => {
@@ -38,6 +45,63 @@ export const CustomerProfile = () => {
             setError(error.message || "Unable to load your bookings");
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const fetchCustomerData = async () => {
+        try {
+            const token = sessionStorage.getItem("token");
+            
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/customer/profile`, {
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setCustomerData({
+                    fullName: data.fullName || '',
+                    phone: data.phone || '',
+                    address: data.address || ''
+                });
+            }
+        } catch (error) {
+            console.error("Error fetching customer data:", error);
+        }
+    };
+
+    const handleCustomerDataUpdate = async (e) => {
+        e.preventDefault();
+        setIsUpdating(true);
+
+        try {
+            const token = sessionStorage.getItem("token");
+            
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/customer/profile`, {
+                method: 'PUT',
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    fullName: customerData.fullName,
+                    phone: customerData.phone,
+                    address: customerData.address
+                })
+            });
+
+            if (response.ok) {
+                alert('Profile updated successfully!');
+            } else {
+                setError("Failed to update profile. Please try again.");
+            }
+        } catch (error) {
+            console.error("Error updating profile:", error);
+            setError(error.message || "Unable to update your profile");
+        } finally {
+            setIsUpdating(false);
         }
     };
 
@@ -71,8 +135,8 @@ export const CustomerProfile = () => {
             <div className="container mt-5">
                 <div className="row mb-4">
                     <div className="col-lg-8">
-                        <h1 className="display-5 fw-bold mb-2">My Bookings</h1>
-                        <p className="text-muted">View your service bookings and history</p>
+                        <h1 className="display-5 fw-bold mb-2">My Profile</h1>
+                        <p className="text-muted">View your service bookings</p>
                     </div>
                     <div className="col-lg-4 d-flex align-items-center justify-content-lg-end mt-3 mt-lg-0">
                         <Link to="/services" className="btn btn-primary btn-lg">
@@ -87,6 +151,61 @@ export const CustomerProfile = () => {
                         <div>{error}</div>
                     </div>
                 )}
+
+                <div className="card mb-5">
+                    <div className="card-header bg-light">
+                        <h5 className="mb-0">👤 Your Information</h5>
+                    </div>
+                    <div className="card-body">
+                        <p className="text-muted mb-4">Update your information that will be sent to service providers</p>
+                        <form onSubmit={handleCustomerDataUpdate}>
+                            <div className="row g-3">
+                                <div className="col-md-6">
+                                    <label className="form-label">Full Name *</label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        value={customerData.fullName}
+                                        onChange={(e) => setCustomerData({...customerData, fullName: e.target.value})}
+                                        placeholder="John Doe"
+                                        required
+                                    />
+                                </div>
+                                <div className="col-md-6">
+                                    <label className="form-label">Phone *</label>
+                                    <input
+                                        type="tel"
+                                        className="form-control"
+                                        value={customerData.phone}
+                                        onChange={(e) => setCustomerData({...customerData, phone: e.target.value})}
+                                        placeholder="(123) 456-7890"
+                                        required
+                                    />
+                                </div>
+                                <div className="col-12">
+                                    <label className="form-label">Address *</label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        value={customerData.address}
+                                        onChange={(e) => setCustomerData({...customerData, address: e.target.value})}
+                                        placeholder="123 Main Street, City, State ZIP"
+                                        required
+                                    />
+                                </div>
+                                <div className="col-12">
+                                    <button
+                                        type="submit"
+                                        className="btn btn-primary btn-lg"
+                                        disabled={isUpdating}
+                                    >
+                                        {isUpdating ? '💾 Saving...' : '💾 Save Changes'}
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
 
                 <div className="filter-tabs mb-4">
                     <div className="btn-group" role="group">
