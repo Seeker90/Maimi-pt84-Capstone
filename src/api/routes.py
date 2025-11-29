@@ -650,7 +650,6 @@ def get_recent_bookings():
         })
     
     return jsonify(result), 200
-# Add this route to your Flask api.py file
 
 @api.route("/customer/profile", methods=["GET", "PUT"])
 @jwt_required()
