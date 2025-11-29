@@ -650,3 +650,41 @@ def get_recent_bookings():
         })
     
     return jsonify(result), 200
+# Add this route to your Flask api.py file
+
+@api.route("/customer/profile", methods=["GET", "PUT"])
+@jwt_required()
+@customer_required()
+def customer_profile():
+    """
+    Get or update customer profile information (fullName, phone, address)
+    """
+    user_id_str = get_jwt_identity()
+    user_id = int(user_id_str)
+    
+    customer = Customer.query.filter_by(user_id=user_id).first()
+    if not customer:
+        return jsonify({'message': 'Customer profile not found'}), 404
+    
+    if request.method == 'GET':
+        return jsonify({
+            'fullName': customer.name,
+            'phone': customer.phone,
+            'address': customer.address
+        }), 200
+    
+    elif request.method == 'PUT':
+        data = request.get_json() or {}
+        
+        customer.name = data.get('fullName', customer.name)
+        customer.phone = data.get('phone', customer.phone)
+        customer.address = data.get('address', customer.address)
+        
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Profile updated successfully',
+            'fullName': customer.name,
+            'phone': customer.phone,
+            'address': customer.address
+        }), 200

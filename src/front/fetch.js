@@ -211,6 +211,24 @@ export const customerAPI = {
         return response.json();
     },
 
+    getCustomerProfile: async () => {
+        const response = await fetch(`${API_URL}/api/customer/bookings`, {
+            headers: getAuthHeaders()
+        });
+        if (!response.ok) throw new Error('Failed to fetch customer profile');
+        return response.json();
+    },
+
+    updateCustomerProfile: async (profileData) => {
+        const response = await fetch(`${API_URL}/api/customer/bookings`, {
+            method: "PUT",
+            headers: getAuthHeaders(),
+            body: JSON.stringify(profileData)
+        });
+        if (!response.ok) throw new Error('Failed to update customer profile');
+        return response.json();
+    },
+
     getAllServices: async (category = null) => {
         let url = `${API_URL}/api/services`
         if (category) {
@@ -321,6 +339,3 @@ export const customerAPI = {
         throw new Error('Location not found');
     }
 };
-
-
-  
