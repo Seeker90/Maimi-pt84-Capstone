@@ -19,7 +19,7 @@ python-dotenv==1.0.0
 python-editor==1.0.4
 pyyaml==6.0.1
 six==1.16.0
-sqlalchemy==1.4.46
+sqlalchemy==2.0.23
 urllib3==2.1.0
 werkzeug==3.0.1
 wtforms==3.1.1
