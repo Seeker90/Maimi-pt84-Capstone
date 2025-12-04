@@ -20,13 +20,35 @@ static_file_dir = os.path.join(os.path.dirname(
     os.path.realpath(__file__)), '../dist/')
 app = Flask(__name__)
 app.url_map.strict_slashes = False
-CORS(app)
 
-# Setup the Flask-JWT-Extended extension
-app.config["JWT_SECRET_KEY"] = os.environ.get('FLASK_SECRET')
+
+allowed_origins = [
+    "http://localhost:5173",      # Local Vite dev
+    "http://localhost:3000",       # Local alternative port
+    "http://localhost:3001",       # Local Flask port
+]
+
+# Add production frontend URL if set in environment
+if os.getenv("FRONTEND_URL"):
+    allowed_origins.append(os.getenv("FRONTEND_URL"))
+
+if ENV == "production":
+    # In production, only allow specified origins
+    CORS(app, origins=allowed_origins, supports_credentials=True)
+else:
+    # In development, allow all origins
+    CORS(app)
+
+jwt_secret = os.environ.get('JWT_SECRET_KEY') or os.environ.get('FLASK_SECRET')
+if not jwt_secret:
+    raise ValueError(
+        "JWT_SECRET_KEY environment variable is not set. "
+        "This is required for authentication. Set it in Railway Variables."
+    )
+
+app.config["JWT_SECRET_KEY"] = jwt_secret
 jwt = JWTManager(app)
 
-# database condiguration
 db_url = os.getenv("DATABASE_URL")
 if db_url is not None:
     app.config['SQLALCHEMY_DATABASE_URI'] = db_url.replace(
@@ -38,23 +60,16 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 MIGRATE = Migrate(app, db, compare_type=True)
 db.init_app(app)
 
-# add the admin
 setup_admin(app)
-
-# add the admin
 setup_commands(app)
 
-# Add all endpoints form the API with a "api" prefix
-app.register_blueprint(api, url_prefix='/api')
 
-# Handle/serialize errors like a JSON object
+app.register_blueprint(api, url_prefix='/api')
 
 
 @app.errorhandler(APIException)
 def handle_invalid_usage(error):
     return jsonify(error.to_dict()), error.status_code
-
-# generate sitemap with all your endpoints
 
 
 @app.route('/')
@@ -63,7 +78,6 @@ def sitemap():
         return generate_sitemap(app)
     return send_from_directory(static_file_dir, 'index.html')
 
-# any other endpoint will try to serve it like a static file
 @app.route('/<path:path>', methods=['GET'])
 def serve_any_other_file(path):
     if not os.path.isfile(os.path.join(static_file_dir, path)):
@@ -73,7 +87,8 @@ def serve_any_other_file(path):
     return response
 
 
-# this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
+    # Railway uses PORT 8080 by default
+    # Local development uses 3001
     PORT = int(os.environ.get('PORT', 3001))
-    app.run(host='0.0.0.0', port=PORT, debug=True)
+    app.run(host='0.0.0.0', port=PORT, debug=ENV == "development")

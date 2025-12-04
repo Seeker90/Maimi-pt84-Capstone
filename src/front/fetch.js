@@ -1,4 +1,28 @@
-/* -------------------- LOGIN FUNCTION -------------------- */
+// src/api/fetch.js - Updated for Railway deployment
+
+// Get backend URL from environment variable
+const API_URL = import.meta.env.VITE_BACKEND_URL;
+
+if (!API_URL) {
+    console.warn('VITE_BACKEND_URL not set. Using default: http://localhost:3000');
+}
+
+const getAuthHeaders = () => {
+    const token = sessionStorage.getItem("token");
+    
+    if (!token) {
+        console.warn("No token found in sessionStorage - user may not be authenticated");
+    }
+    
+    return {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+    };
+};
+
+// ============================================
+// AUTHENTICATION
+// ============================================
 
 export const login = async (email, password, role) => {
     const options = {
@@ -9,23 +33,20 @@ export const login = async (email, password, role) => {
         body: JSON.stringify({ username: email, password, role })
     };
 
-    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/login`, options);
+    const response = await fetch(`${API_URL}/api/login`, options);
 
     if (!response.ok) {
         const data = await response.json();
-        console.log(data.message);
-
         return {
             error: {
                 status: response.status,
                 statusText: response.statusText,
-                message: data.message
+                message: data.message || 'Login failed'
             }
         };
     }
 
     const data = await response.json();
-
     sessionStorage.setItem("token", data.token);
 
     return {
@@ -35,23 +56,6 @@ export const login = async (email, password, role) => {
         isLoginSuccessful: true
     };
 };
-
-const API_URL = import.meta.env.VITE_BACKEND_URL;
-
-const getAuthHeaders = () => {
-    const token = sessionStorage.getItem("token")
-    console.log("getAuthHeaders - token from sessionStorage:", token)
-    
-    if (!token) {
-        console.error("No token found in sessionStorage!")
-    }
-    
-    return {
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json"
-    }
-}
-
 
 export const authAPI = {
     login: async (username, password, role) => {
@@ -73,6 +77,9 @@ export const authAPI = {
     }
 };
 
+// ============================================
+// PROVIDER API
+// ============================================
 
 export const providerAPI = {
     getProfile: async () => {
@@ -112,26 +119,18 @@ export const providerAPI = {
     },
 
     createService: async (serviceData) => {
-        console.log('Creating service with data:', serviceData);
-        console.log('Auth token:', sessionStorage.getItem("token"));
-
         const response = await fetch(`${API_URL}/api/provider/services`, {
             method: "POST",
             headers: getAuthHeaders(),
             body: JSON.stringify(serviceData)
         });
 
-        console.log('Response status:', response.status);
-
         if (!response.ok) {
             const error = await response.json();
-            console.log('Error response:', error);
             throw new Error(error.message || 'Failed to create service');
         }
 
-        const data = await response.json();
-        console.log('Success response:', data);
-        return data;
+        return response.json();
     },
 
     updateService: async (serviceId, serviceData) => {
@@ -191,8 +190,11 @@ export const providerAPI = {
     }
 };
 
-export const customerAPI = {
+// ============================================
+// CUSTOMER API
+// ============================================
 
+export const customerAPI = {
     createBooking: async (serviceId) => {
         const response = await fetch(`${API_URL}/api/bookings`, {
             method: "POST",
@@ -212,7 +214,7 @@ export const customerAPI = {
     },
 
     getCustomerProfile: async () => {
-        const response = await fetch(`${API_URL}/api/customer/bookings`, {
+        const response = await fetch(`${API_URL}/api/customer/profile`, {
             headers: getAuthHeaders()
         });
         if (!response.ok) throw new Error('Failed to fetch customer profile');
@@ -220,7 +222,7 @@ export const customerAPI = {
     },
 
     updateCustomerProfile: async (profileData) => {
-        const response = await fetch(`${API_URL}/api/customer/bookings`, {
+        const response = await fetch(`${API_URL}/api/customer/profile`, {
             method: "PUT",
             headers: getAuthHeaders(),
             body: JSON.stringify(profileData)
@@ -230,14 +232,14 @@ export const customerAPI = {
     },
 
     getAllServices: async (category = null) => {
-        let url = `${API_URL}/api/services`
+        let url = `${API_URL}/api/services`;
         if (category) {
-            url += `?category=${category}`
+            url += `?category=${category}`;
         }
         
-        const response = await fetch(url)
-        if (!response.ok) throw new Error('Failed to fetch services')
-        return response.json()
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Failed to fetch services');
+        return response.json();
     },
 
     geocodeAddress: async (address) => {
@@ -256,8 +258,8 @@ export const customerAPI = {
         if (data.features && data.features.length > 0) {
             const [longitude, latitude] = data.features[0].center;
             return {
-                latitude: latitude,
-                longitude: longitude,
+                latitude,
+                longitude,
                 formattedAddress: data.features[0].place_name
             };
         }
