@@ -1,5 +1,7 @@
 [build]
-cmd = "npm run build"
+builder = "nixpacks"
 
 [deploy]
-cmd = "gunicorn wsgi --chdir ./src/"
+startCommand = "npm run preview"
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 10
