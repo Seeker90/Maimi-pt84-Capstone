@@ -15,7 +15,7 @@ from flask_jwt_extended import (
 from datetime import datetime, timedelta
 from sqlalchemy import func
 from math import radians, cos, sin, asin, sqrt
-from api.sms_service import sms_service
+from api.sms_service import get_sms_service
 
 api = Blueprint("api", __name__)
 CORS(api)
@@ -546,7 +546,7 @@ def get_nearby_services():
 @customer_required()
 def create_booking():
     """
-    Create a new booking and send SMS notifications via Twilio
+    Create a new booking and send SMS notifications via TextBelt
     """
     user_id_str = get_jwt_identity()
     user_id = int(user_id_str)
@@ -583,7 +583,7 @@ def create_booking():
 
     try:
         if customer.phone:
-            sms_service.send_booking_confirmation_to_customer(
+            get_sms_service().send_booking_confirmation_to_customer(
                 customer.phone,
                 provider.name,
                 provider.phone or 'Not provided',
@@ -591,7 +591,7 @@ def create_booking():
             )
 
         if provider.phone:
-            sms_service.send_booking_notification_to_provider(
+            get_sms_service().send_booking_notification_to_provider(
                 provider.phone,
                 customer.name,
                 customer.address or 'Not provided',

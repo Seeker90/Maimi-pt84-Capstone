@@ -133,4 +133,11 @@ Please contact the customer to confirm."""
         return self.send_sms(provider_phone, message)
 
 # Create singleton instance
-sms_service = SMSService()
+# Lazy-loaded singleton instance
+_sms_service = None
+
+def get_sms_service():
+    global _sms_service
+    if _sms_service is None:
+        _sms_service = SMSService()
+    return _sms_service
