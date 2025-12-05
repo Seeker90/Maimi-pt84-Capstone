@@ -2,7 +2,7 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 import os
-from flask import Flask, request, jsonify, url_for
+from flask import Flask, request, jsonify, url_for, send_from_directory
 from flask_migrate import Migrate
 from flask_swagger import swagger
 from api.utils import APIException, generate_sitemap
@@ -17,6 +17,11 @@ from flask_cors import CORS
 
 ENV = "development" if os.getenv("FLASK_DEBUG") == "1" else "production"
 app = Flask(__name__)
+
+# Configure to serve React build from dist/
+app.static_folder = os.path.join(os.path.dirname(__file__), '../dist')
+app.static_url_path = ''
+
 app.url_map.strict_slashes = False
 
 # ============================================
@@ -26,6 +31,7 @@ allowed_origins = [
     "http://localhost:5173",      # Local Vite dev
     "http://localhost:3000",       # Local alternative port
     "http://localhost:3001",       # Local Flask port
+    "http://localhost:8000",       # Local Flask gunicorn
     "https://maimi-pt84-capstone-production.up.railway.app",  # Production frontend
 ]
 
@@ -79,19 +85,46 @@ def health_check():
         "environment": ENV
     }), 200
 
-@app.route('/', methods=['GET'])
-def root():
-    """Root endpoint - returns API info"""
-    if ENV == "development":
-        return generate_sitemap(app)
-    else:
-        # In production, return API info instead of sitemap
-        return jsonify({
-            "message": "HomeCalls Backend API",
-            "version": "1.0.0",
-            "docs": "https://backend-production-eafd.up.railway.app/api/swagger",
-            "status": "running"
-        }), 200
+# ============================================
+# Serve React Frontend
+# ============================================
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve_frontend(path):
+    """
+    Serve React frontend files from dist/ folder.
+    
+    This catch-all route:
+    1. Tries to serve the requested file if it exists (CSS, JS, images, etc.)
+    2. Falls back to index.html for React Router to handle client-side routing
+    
+    NOTE: Flask API routes (/api/*) are matched BEFORE this catch-all,
+    so API endpoints work correctly.
+    """
+    static_folder = app.static_folder
+    
+    # If path is empty (root), serve index.html
+    if path == '':
+        index_path = os.path.join(static_folder, 'index.html')
+        if os.path.exists(index_path):
+            return send_from_directory(static_folder, 'index.html')
+    
+    # If requested path is a file that exists, serve it
+    if os.path.exists(os.path.join(static_folder, path)):
+        return send_from_directory(static_folder, path)
+    
+    # Fallback to index.html for React Router SPA navigation
+    index_path = os.path.join(static_folder, 'index.html')
+    if os.path.exists(index_path):
+        return send_from_directory(static_folder, 'index.html')
+    
+    # If dist/ folder doesn't exist, return helpful error
+    return {
+        "error": "React build not found",
+        "message": "Run 'npm run build' in project root to create the dist/ folder",
+        "static_folder": static_folder,
+        "exists": os.path.exists(static_folder)
+    }, 404
 
 if __name__ == '__main__':
     # Railway uses PORT 8080 by default
