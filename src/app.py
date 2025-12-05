@@ -2,7 +2,7 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 import os
-from flask import Flask, request, jsonify, url_for, send_from_directory
+from flask import Flask, request, jsonify, url_for
 from flask_migrate import Migrate
 from flask_swagger import swagger
 from api.utils import APIException, generate_sitemap
@@ -16,16 +16,17 @@ from flask_cors import CORS
 # from models import Person
 
 ENV = "development" if os.getenv("FLASK_DEBUG") == "1" else "production"
-static_file_dir = os.path.join(os.path.dirname(
-    os.path.realpath(__file__)), '../dist/')
 app = Flask(__name__)
 app.url_map.strict_slashes = False
 
-
+# ============================================
+# Configure CORS for frontend requests
+# ============================================
 allowed_origins = [
     "http://localhost:5173",      # Local Vite dev
     "http://localhost:3000",       # Local alternative port
     "http://localhost:3001",       # Local Flask port
+    "https://maimi-pt84-capstone-production.up.railway.app",  # Production frontend
 ]
 
 # Add production frontend URL if set in environment
@@ -63,29 +64,34 @@ db.init_app(app)
 setup_admin(app)
 setup_commands(app)
 
-
 app.register_blueprint(api, url_prefix='/api')
-
 
 @app.errorhandler(APIException)
 def handle_invalid_usage(error):
     return jsonify(error.to_dict()), error.status_code
 
+@app.route('/health', methods=['GET'])
+def health_check():
+    """Simple health check endpoint"""
+    return jsonify({
+        "status": "healthy",
+        "message": "Backend is running",
+        "environment": ENV
+    }), 200
 
-@app.route('/')
-def sitemap():
+@app.route('/', methods=['GET'])
+def root():
+    """Root endpoint - returns API info"""
     if ENV == "development":
         return generate_sitemap(app)
-    return send_from_directory(static_file_dir, 'index.html')
-
-@app.route('/<path:path>', methods=['GET'])
-def serve_any_other_file(path):
-    if not os.path.isfile(os.path.join(static_file_dir, path)):
-        path = 'index.html'
-    response = send_from_directory(static_file_dir, path)
-    response.cache_control.max_age = 0  # avoid cache memory
-    return response
-
+    else:
+        # In production, return API info instead of sitemap
+        return jsonify({
+            "message": "HomeCalls Backend API",
+            "version": "1.0.0",
+            "docs": "https://backend-production-eafd.up.railway.app/api/swagger",
+            "status": "running"
+        }), 200
 
 if __name__ == '__main__':
     # Railway uses PORT 8080 by default

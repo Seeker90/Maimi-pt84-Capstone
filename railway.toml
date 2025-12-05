@@ -1,5 +1,0 @@
-[build]
-cmd = "npm run build"
-
-[deploy]
-cmd = "gunicorn wsgi --chdir ./src/"
