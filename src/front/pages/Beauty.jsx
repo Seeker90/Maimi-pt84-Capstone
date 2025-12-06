@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { customerAPI } from '../fetch';
 import { NearbySearch } from '../components/NearbySearch';
+import { MessagingModal } from '../components/MessagingModal';
 import './../../lib/BeautyService.css';
 
 export default function BeautyServicePage() {
@@ -13,6 +14,9 @@ export default function BeautyServicePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchMode, setSearchMode] = useState('all');
   const [bookingInProgress, setBookingInProgress] = useState(null);
+  const [messagingModalOpen, setMessagingModalOpen] = useState(false);
+  const [selectedService, setSelectedService] = useState(null);
+  const [unreadMessages, setUnreadMessages] = useState({});
 
   const serviceCategories = [
     { id: 'beauty', name: 'Beauty', icon: '💄', gradient: 'gradient-pink-red' },
@@ -24,7 +28,7 @@ export default function BeautyServicePage() {
   useEffect(() => {
     const token = sessionStorage.getItem("token");
     const role = sessionStorage.getItem("role");
-    
+
     if (!token || role !== "customer") {
       navigate("/login");
       return;
@@ -33,7 +37,7 @@ export default function BeautyServicePage() {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       const now = Math.floor(Date.now() / 1000);
-      
+
       if (now > payload.exp) {
         console.log("Token expired, redirecting to login");
         sessionStorage.clear();
@@ -77,6 +81,60 @@ export default function BeautyServicePage() {
     await fetchServices();
   };
 
+  const checkUnreadMessages = async () => {
+    try {
+      // Check for unread messages from all providers
+      const newUnread = {};
+      for (const service of services) {
+        const messages = await customerAPI.getMessages(service.provider.id);
+        const unreadCount = messages.filter(msg => !msg.isRead && msg.senderType === 'provider').length;
+        if (unreadCount > 0) {
+          newUnread[service.provider.id] = unreadCount;
+        }
+      }
+      setUnreadMessages(newUnread);
+    } catch (error) {
+      console.error('Error checking unread messages:', error);
+    }
+  };
+
+  // Poll for unread messages every 5 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      checkUnreadMessages();
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [services]);
+
+  // Clear all messages on page refresh
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      setUnreadMessages({});
+      setMessagingModalOpen(false);
+      setSelectedService(null);
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        return;
+      } else {
+        // User came back to the page - clear messages
+        setUnreadMessages({});
+        setMessagingModalOpen(false);
+        setSelectedService(null);
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
+
   const handleBookNow = async (serviceId) => {
     setBookingInProgress(serviceId);
     try {
@@ -95,7 +153,7 @@ export default function BeautyServicePage() {
 
     if (selectedCategory !== 'All Categories') {
       const searchTerm = selectedCategory.toLowerCase();
-      filtered = filtered.filter(service => 
+      filtered = filtered.filter(service =>
         service.name.toLowerCase().includes(searchTerm) ||
         service.description.toLowerCase().includes(searchTerm)
       );
@@ -103,11 +161,11 @@ export default function BeautyServicePage() {
 
     if (searchMode !== 'nearby') {
       if (sortByLocation === 'Nearest First') {
-        filtered = [...filtered].sort((a, b) => 
+        filtered = [...filtered].sort((a, b) =>
           (a.provider.city || '').localeCompare(b.provider.city || '')
         );
       } else if (sortByLocation === 'Farthest First') {
-        filtered = [...filtered].sort((a, b) => 
+        filtered = [...filtered].sort((a, b) =>
           (b.provider.city || '').localeCompare(a.provider.city || '')
         );
       }
@@ -137,7 +195,7 @@ export default function BeautyServicePage() {
       <div className="bg-light">
         <main className="container py-5">
           <h1 className="text-center display-1 fw-light mb-5">Beauty</h1>
-          
+
           <div className="row justify-content-center g-4 py-4">
             {serviceCategories.map((category) => (
               <div key={category.id} className="col-6 col-sm-4 col-md-3 col-lg-2">
@@ -158,19 +216,19 @@ export default function BeautyServicePage() {
           </div>
         </main>
       </div>
-   
+
       <div className="services-section bg-gradient-light min-vh-100 pb-5">
         <div className="container py-4">
-          
+
           <div className="mb-4">
-            <NearbySearch 
+            <NearbySearch
               onSearchResults={handleNearbySearchResults}
               category="beauty"
             />
-            
+
             {searchMode === 'nearby' && (
               <div className="text-center mb-3">
-                <button 
+                <button
                   className="btn btn-outline-secondary"
                   onClick={handleShowAll}
                 >
@@ -229,7 +287,7 @@ export default function BeautyServicePage() {
               <div className="text-center py-5">
                 <h3>No services available</h3>
                 <p className="text-muted">
-                  {searchMode === 'nearby' 
+                  {searchMode === 'nearby'
                     ? 'Try expanding your search radius or searching in a different location'
                     : 'Check back later for beauty services in your area'}
                 </p>
@@ -239,7 +297,7 @@ export default function BeautyServicePage() {
                 <div key={service.id} className="card provider-card border-0 shadow-sm">
                   <div className="card-body p-4">
                     <div className="row g-4">
-                      
+
                       <div className="col-auto">
                         <div className="provider-image-placeholder rounded-3 d-flex align-items-center justify-content-center">
                           <div className="provider-image-inner"></div>
@@ -252,7 +310,7 @@ export default function BeautyServicePage() {
                             📍 {service.provider.distance} miles away
                           </span>
                         )}
-                        
+
                         <h3 className="h5 fw-bold text-dark mb-2">
                           Company Name: {service.provider.businessName || service.provider.name}
                         </h3>
@@ -270,20 +328,36 @@ export default function BeautyServicePage() {
                             Duration: {service.duration} minutes
                           </p>
                         )}
-                        <button 
-                          className="btn btn-book-now"
-                          onClick={() => handleBookNow(service.id)}
-                          disabled={bookingInProgress === service.id}
-                        >
-                          {bookingInProgress === service.id ? (
-                            <>
-                              <span className="spinner-border spinner-border-sm me-2" />
-                              Booking...
-                            </>
-                          ) : (
-                            'Book Now'
-                          )}
-                        </button>
+                        <div className="d-flex gap-2">
+                          <button
+                            className="btn btn-book-now"
+                            onClick={() => handleBookNow(service.id)}
+                            disabled={bookingInProgress === service.id}
+                          >
+                            {bookingInProgress === service.id ? (
+                              <>
+                                <span className="spinner-border spinner-border-sm me-2" />
+                                Booking...
+                              </>
+                            ) : (
+                              'Book Now'
+                            )}
+                          </button>
+                          <button
+                            className={`btn position-relative ${unreadMessages[service.provider.id] > 0 ? 'btn-danger' : 'btn-outline-primary'}`}
+                            onClick={() => {
+                              setSelectedService(service);
+                              setMessagingModalOpen(true);
+                              // Clear unread messages for this provider
+                              setUnreadMessages(prev => ({
+                                ...prev,
+                                [service.provider.id]: 0
+                              }));
+                            }}
+                          >
+                            💬 {unreadMessages[service.provider.id] > 0 ? 'New Message' : 'Message'}
+                          </button>
+                        </div>
                       </div>
 
                       <div className="col-12 col-lg-auto">
@@ -321,7 +395,7 @@ export default function BeautyServicePage() {
                           />
                         </div>
                       </div>
-                      
+
                     </div>
                   </div>
                 </div>
@@ -330,6 +404,17 @@ export default function BeautyServicePage() {
           </div>
         </div>
       </div>
+
+      <MessagingModal
+        show={messagingModalOpen}
+        service={selectedService}
+        onClose={() => {
+          setMessagingModalOpen(false);
+          setSelectedService(null);
+          // Refresh messages to update unread count after closing
+          checkUnreadMessages();
+        }}
+      />
     </>
   );
 }

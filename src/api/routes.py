@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, Blueprint
-from api.models import db, User, Provider, Customer, Service, Booking
+from api.models import db, User, Provider, Customer, Service, Booking, Message
 from api.utils import (
     generate_sitemap,
     APIException,
@@ -299,6 +299,7 @@ def get_provider_bookings():
 
     return jsonify([b.serialize() for b in bookings]), 200
 
+
 @api.route("/customer/bookings", methods=["GET"])
 @jwt_required()
 @customer_required()
@@ -308,26 +309,26 @@ def get_customer_bookings():
     """
     user_id_str = get_jwt_identity()
     user_id = int(user_id_str)
-    
+
     customer = Customer.query.filter_by(user_id=user_id).first()
     if not customer:
         return jsonify({'message': 'Customer profile not found'}), 404
-    
+
     bookings = Booking.query.filter_by(customer_id=customer.id).order_by(
         Booking.booking_date.desc(),
         Booking.booking_time.desc()
     ).all()
-    
+
     bookings_data = []
     for booking in bookings:
         service = booking.service
         provider = booking.provider
-        
+
         if booking.booking_date and booking.booking_time:
             service_datetime = f"{booking.booking_date.isoformat()}T{booking.booking_time.isoformat()}"
         else:
             service_datetime = ""
-        
+
         booking_data = {
             'id': booking.id,
             'serviceType': service.category if service else 'Unknown',
@@ -340,8 +341,9 @@ def get_customer_bookings():
             'rating': None
         }
         bookings_data.append(booking_data)
-    
+
     return jsonify(bookings_data), 200
+
 
 @api.route("/provider/bookings/<int:booking_id>", methods=["GET"])
 @jwt_required()
@@ -387,6 +389,7 @@ def update_booking_status(booking_id):
         "message": "Booking status updated successfully",
         "booking": booking.serialize()
     }), 200
+
 
 @api.route("/provider/earnings", methods=["GET"])
 @jwt_required()
@@ -620,21 +623,21 @@ def create_booking():
     except Exception as e:
         db.session.rollback()
         return jsonify({'message': f'Error creating booking: {str(e)}'}), 500
-    
+
 
 @api.route('/bookings/recent', methods=['GET'])
 @jwt_required()
 def get_recent_bookings():
     user_id = get_jwt_identity()
     category = request.args.get('category', None)
-    
+
     query = Booking.query.filter_by(customer_id=user_id)
-    
+
     if category:
         query = query.join(Service).filter(Service.category == category)
-    
+
     bookings = query.order_by(Booking.created_at.desc()).limit(10).all()
-    
+
     result = []
     for b in bookings:
         result.append({
@@ -648,8 +651,9 @@ def get_recent_bookings():
             'price': float(b.service.price),
             'status': b.status
         })
-    
+
     return jsonify(result), 200
+
 
 @api.route("/customer/profile", methods=["GET", "PUT"])
 @jwt_required()
@@ -660,30 +664,307 @@ def customer_profile():
     """
     user_id_str = get_jwt_identity()
     user_id = int(user_id_str)
-    
+
     customer = Customer.query.filter_by(user_id=user_id).first()
     if not customer:
         return jsonify({'message': 'Customer profile not found'}), 404
-    
+
     if request.method == 'GET':
         return jsonify({
             'fullName': customer.name,
             'phone': customer.phone,
             'address': customer.address
         }), 200
-    
+
     elif request.method == 'PUT':
         data = request.get_json() or {}
-        
+
         customer.name = data.get('fullName', customer.name)
         customer.phone = data.get('phone', customer.phone)
         customer.address = data.get('address', customer.address)
-        
+
         db.session.commit()
-        
+
         return jsonify({
             'message': 'Profile updated successfully',
             'fullName': customer.name,
             'phone': customer.phone,
             'address': customer.address
         }), 200
+
+# ============================================
+# MESSAGING ROUTES
+# ============================================
+
+
+@api.route("/messages", methods=["POST"])
+@jwt_required()
+@customer_required()
+def send_message():
+    """
+    Send a message from customer to provider
+    """
+    user_id_str = get_jwt_identity()
+    user_id = int(user_id_str)
+
+    customer = Customer.query.filter_by(user_id=user_id).first()
+    if not customer:
+        return jsonify({'message': 'Customer profile not found'}), 404
+
+    data = request.get_json() or {}
+    provider_id = data.get('provider_id')
+    message_text = data.get('message')
+    service_id = data.get('service_id')
+
+    if not provider_id or not message_text:
+        return jsonify({'message': 'provider_id and message are required'}), 400
+
+    provider = Provider.query.get(provider_id)
+    if not provider:
+        return jsonify({'message': 'Provider not found'}), 404
+
+    # Create the message
+    message = Message(
+        customer_id=customer.id,
+        provider_id=provider_id,
+        sender_id=user_id,
+        sender_type='customer',
+        message=message_text,
+        is_read=False
+    )
+
+    db.session.add(message)
+    db.session.commit()
+
+    return jsonify({
+        'message': 'Message sent successfully',
+        'messageData': message.serialize()
+    }), 201
+
+
+@api.route("/messages/<int:provider_id>", methods=["GET"])
+@jwt_required()
+@customer_required()
+def get_messages(provider_id):
+    """
+    Get all messages between current customer and a specific provider
+    """
+    user_id_str = get_jwt_identity()
+    user_id = int(user_id_str)
+
+    customer = Customer.query.filter_by(user_id=user_id).first()
+    if not customer:
+        return jsonify({'message': 'Customer profile not found'}), 404
+
+    # Fetch all messages between this customer and provider
+    messages = Message.query.filter(
+        ((Message.customer_id == customer.id) &
+         (Message.provider_id == provider_id))
+    ).order_by(Message.created_at.asc()).all()
+
+    # Mark messages as read if they were sent to this customer
+    for msg in messages:
+        if msg.sender_type == 'provider':
+            msg.is_read = True
+
+    db.session.commit()
+
+    return jsonify([msg.serialize() for msg in messages]), 200
+
+
+@api.route("/messages/provider/<int:customer_id>", methods=["GET"])
+@jwt_required()
+@provider_required()
+def get_provider_messages(customer_id):
+    """
+    Get all messages between current provider and a specific customer
+    """
+    user_id_str = get_jwt_identity()
+    user_id = int(user_id_str)
+
+    provider = Provider.query.filter_by(user_id=user_id).first()
+    if not provider:
+        return jsonify({'message': 'Provider profile not found'}), 404
+
+    # Fetch all messages between this customer and provider
+    messages = Message.query.filter(
+        ((Message.customer_id == customer_id) &
+         (Message.provider_id == provider.id))
+    ).order_by(Message.created_at.asc()).all()
+
+    # Mark messages as read if they were sent to this provider
+    for msg in messages:
+        if msg.sender_type == 'customer':
+            msg.is_read = True
+
+    db.session.commit()
+
+    return jsonify([msg.serialize() for msg in messages]), 200
+
+
+@api.route("/provider/messages", methods=["GET"])
+@jwt_required()
+@provider_required()
+def get_provider_all_messages():
+    """
+    Get all messages received by the provider
+    """
+    user_id_str = get_jwt_identity()
+    user_id = int(user_id_str)
+
+    provider = Provider.query.filter_by(user_id=user_id).first()
+    if not provider:
+        return jsonify({'message': 'Provider profile not found'}), 404
+
+    # Fetch all messages for this provider
+    messages = Message.query.filter_by(provider_id=provider.id).all()
+
+    # Mark customer messages as read
+    for msg in messages:
+        if msg.sender_type == 'customer' and not msg.is_read:
+            msg.is_read = True
+
+    db.session.commit()
+
+    return jsonify([msg.serialize() for msg in messages]), 200
+
+
+@api.route("/messages/provider/send", methods=["POST"])
+@jwt_required()
+@provider_required()
+def send_provider_message():
+    """
+    Send a message from provider to customer
+    """
+    user_id_str = get_jwt_identity()
+    user_id = int(user_id_str)
+
+    provider = Provider.query.filter_by(user_id=user_id).first()
+    if not provider:
+        return jsonify({'message': 'Provider profile not found'}), 404
+
+    data = request.get_json() or {}
+    customer_id = data.get('customer_id')
+    message_text = data.get('message')
+
+    if not customer_id or not message_text:
+        return jsonify({'message': 'customer_id and message are required'}), 400
+
+    customer = Customer.query.get(customer_id)
+    if not customer:
+        return jsonify({'message': 'Customer not found'}), 404
+
+    # Create the message
+    message = Message(
+        customer_id=customer_id,
+        provider_id=provider.id,
+        sender_id=user_id,
+        sender_type='provider',
+        message=message_text,
+        is_read=False
+    )
+
+    db.session.add(message)
+    db.session.commit()
+
+    return jsonify({
+        'message': 'Message sent successfully',
+        'messageData': message.serialize()
+    }), 201
+
+
+@api.route("/messages/<int:message_id>", methods=["DELETE"])
+@jwt_required()
+def delete_message(message_id):
+    """
+    Delete a specific message by ID
+    Only the sender or receiver can delete their own message
+    """
+    user_id_str = get_jwt_identity()
+    user_id = int(user_id_str)
+
+    message = Message.query.get(message_id)
+    if not message:
+        return jsonify({'message': 'Message not found'}), 404
+
+    # Check if user is the sender or the recipient
+    if message.sender_id != user_id:
+        # Check if user is the provider or customer in this conversation
+        provider = Provider.query.filter_by(user_id=user_id).first()
+        customer = Customer.query.filter_by(user_id=user_id).first()
+        
+        is_recipient = False
+        if provider and message.provider_id == provider.id:
+            is_recipient = True
+        elif customer and message.customer_id == customer.id:
+            is_recipient = True
+        
+        if not is_recipient:
+            return jsonify({'message': 'Unauthorized to delete this message'}), 403
+
+    db.session.delete(message)
+    db.session.commit()
+
+    return jsonify({'message': 'Message deleted successfully'}), 200
+
+
+@api.route("/conversations/<int:provider_id>", methods=["DELETE"])
+@jwt_required()
+@customer_required()
+def delete_conversation(provider_id):
+    """
+    Delete entire conversation between customer and provider
+    """
+    user_id_str = get_jwt_identity()
+    user_id = int(user_id_str)
+
+    customer = Customer.query.filter_by(user_id=user_id).first()
+    if not customer:
+        return jsonify({'message': 'Customer profile not found'}), 404
+
+    # Delete all messages between this customer and provider
+    messages = Message.query.filter(
+        (Message.customer_id == customer.id) &
+        (Message.provider_id == provider_id)
+    ).all()
+
+    if not messages:
+        return jsonify({'message': 'No conversation found'}), 404
+
+    for msg in messages:
+        db.session.delete(msg)
+
+    db.session.commit()
+
+    return jsonify({'message': 'Conversation deleted successfully'}), 200
+
+
+@api.route("/provider/conversations/<int:customer_id>", methods=["DELETE"])
+@jwt_required()
+@provider_required()
+def delete_provider_conversation(customer_id):
+    """
+    Delete entire conversation between provider and customer
+    """
+    user_id_str = get_jwt_identity()
+    user_id = int(user_id_str)
+
+    provider = Provider.query.filter_by(user_id=user_id).first()
+    if not provider:
+        return jsonify({'message': 'Provider profile not found'}), 404
+
+    # Delete all messages between this provider and customer
+    messages = Message.query.filter(
+        (Message.customer_id == customer_id) &
+        (Message.provider_id == provider.id)
+    ).all()
+
+    if not messages:
+        return jsonify({'message': 'No conversation found'}), 404
+
+    for msg in messages:
+        db.session.delete(msg)
+
+    db.session.commit()
+
+    return jsonify({'message': 'Conversation deleted successfully'}), 200

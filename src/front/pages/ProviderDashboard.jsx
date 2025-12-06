@@ -9,8 +9,14 @@ export const ProviderDashboard = () => {
     const [providerData, setProviderData] = useState(null)
     const [services, setServices] = useState([])
     const [bookings, setBookings] = useState([])
+    const [messages, setMessages] = useState([])
+    const [unreadCount, setUnreadCount] = useState(0)
     const [isLoading, setIsLoading] = useState(true)
     const [showServiceModal, setShowServiceModal] = useState(false)
+    const [selectedConversation, setSelectedConversation] = useState(null)
+    const [messageInput, setMessageInput] = useState("")
+    const [newMessageAlert, setNewMessageAlert] = useState(null)
+    const [previousUnreadCount, setPreviousUnreadCount] = useState(0)
     const [newService, setNewService] = useState({
         name: '',
         description: '',
@@ -18,7 +24,7 @@ export const ProviderDashboard = () => {
         price: '',
         duration: ''
     })
-  
+
     const [profileForm, setProfileForm] = useState({
         businessName: '',
         name: '',
@@ -35,16 +41,16 @@ export const ProviderDashboard = () => {
     useEffect(() => {
         const token = sessionStorage.getItem("token")
         const role = sessionStorage.getItem("role")
-        
+
         if (!token || role !== "provider") {
             navigate("/login")
             return
         }
-        
+
         try {
             const payload = JSON.parse(atob(token.split('.')[1]))
             const now = Math.floor(Date.now() / 1000)
-            
+
             if (now > payload.exp) {
                 console.log("Token expired, redirecting to login")
                 sessionStorage.clear()
@@ -57,8 +63,41 @@ export const ProviderDashboard = () => {
             navigate("/login")
             return
         }
-        
+
         fetchDashboardData()
+    }, [])
+
+    // Clear all conversations on page refresh
+    useEffect(() => {
+        const handleBeforeUnload = () => {
+            setMessages([])
+            setSelectedConversation(null)
+            setMessageInput("")
+            setUnreadCount(0)
+            setNewMessageAlert(null)
+        }
+
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                // User switched tabs or minimized window
+                return
+            } else {
+                // User came back to the page - clear all conversations
+                setMessages([])
+                setSelectedConversation(null)
+                setMessageInput("")
+                setUnreadCount(0)
+                setNewMessageAlert(null)
+            }
+        }
+
+        window.addEventListener("beforeunload", handleBeforeUnload)
+        document.addEventListener("visibilitychange", handleVisibilityChange)
+
+        return () => {
+            window.removeEventListener("beforeunload", handleBeforeUnload)
+            document.removeEventListener("visibilitychange", handleVisibilityChange)
+        }
     }, [])
 
     const fetchDashboardData = async () => {
@@ -66,7 +105,7 @@ export const ProviderDashboard = () => {
         try {
             const profileData = await providerAPI.getProfile()
             setProviderData(profileData)
-            
+
             // Populate profile form with data
             setProfileForm({
                 businessName: profileData.businessName || '',
@@ -87,6 +126,15 @@ export const ProviderDashboard = () => {
             const bookingsData = await providerAPI.getBookings()
             setBookings(bookingsData)
 
+            // Fetch messages
+            const messagesData = await providerAPI.getAllMessages()
+            setMessages(messagesData)
+
+            // Count unread messages
+            const unread = messagesData.filter(msg => !msg.isRead && msg.senderType === 'customer').length
+            setUnreadCount(unread)
+            setPreviousUnreadCount(unread)
+
         } catch (error) {
             console.error("Error fetching dashboard data:", error)
             if (error.message.includes('401') || error.message.includes('403')) {
@@ -97,9 +145,83 @@ export const ProviderDashboard = () => {
         }
     }
 
+    const fetchMessages = async () => {
+        try {
+            const messagesData = await providerAPI.getAllMessages()
+            setMessages(messagesData)
+
+            const unread = messagesData.filter(msg => !msg.isRead && msg.senderType === 'customer').length
+
+            // Check if new messages arrived
+            if (unread > previousUnreadCount) {
+                const newCount = unread - previousUnreadCount
+                const newMessages = messagesData
+                    .filter(msg => !msg.isRead && msg.senderType === 'customer')
+                    .slice(-newCount)
+
+                // Get unique customer names
+                const customerNames = [...new Set(newMessages.map(m => m.customerName))]
+                const alertMessage = customerNames.length === 1
+                    ? `New message from ${customerNames[0]}`
+                    : `New messages from ${customerNames.length} customers`
+
+                setNewMessageAlert({
+                    message: alertMessage,
+                    count: newCount,
+                    customers: customerNames
+                })
+
+                // Auto-dismiss alert after 5 seconds
+                setTimeout(() => setNewMessageAlert(null), 5000)
+            }
+
+            setUnreadCount(unread)
+            setPreviousUnreadCount(unread)
+        } catch (error) {
+            console.error("Error fetching messages:", error)
+        }
+    }
+
+    // Poll for new messages every 5 seconds
+    useEffect(() => {
+        const interval = setInterval(() => {
+            fetchMessages()
+        }, 5000)
+
+        return () => clearInterval(interval)
+    }, [])
+
+    const handleDeleteConversation = async (customerId) => {
+        if (window.confirm('Delete this conversation? This cannot be undone.')) {
+            try {
+                await providerAPI.deleteConversation(customerId)
+                const updatedMessages = messages.filter(msg => msg.customerId !== customerId)
+                setMessages(updatedMessages)
+                setSelectedConversation(null)
+                const newUnreadCount = updatedMessages.filter(m => !m.isRead && m.senderType === 'customer').length
+                setUnreadCount(newUnreadCount)
+            } catch (error) {
+                console.error('Error deleting conversation:', error)
+                alert('Failed to delete conversation')
+            }
+        }
+    }
+
+    const handleDeleteMessage = async (messageId) => {
+        if (window.confirm('Delete this message?')) {
+            try {
+                await providerAPI.deleteMessage(messageId)
+                await fetchMessages()
+            } catch (error) {
+                console.error('Error deleting message:', error)
+                alert('Failed to delete message')
+            }
+        }
+    }
+
     const handleProfileUpdate = async (e) => {
         e.preventDefault()
-        
+
         try {
             await providerAPI.updateProfile({
                 businessName: profileForm.businessName,
@@ -111,7 +233,7 @@ export const ProviderDashboard = () => {
                 state: profileForm.state,
                 zipCode: profileForm.zipCode
             })
-   
+
             if (profileForm.latitude && profileForm.longitude) {
                 await providerAPI.updateLocation({
                     latitude: parseFloat(profileForm.latitude),
@@ -121,7 +243,7 @@ export const ProviderDashboard = () => {
                     zipCode: profileForm.zipCode
                 })
             }
-            
+
             alert('Profile updated successfully!')
             fetchDashboardData()
         } catch (error) {
@@ -132,7 +254,7 @@ export const ProviderDashboard = () => {
 
     const handleAddService = async (e) => {
         e.preventDefault()
-        
+
         try {
             const serviceData = {
                 name: newService.name,
@@ -143,7 +265,7 @@ export const ProviderDashboard = () => {
             }
 
             const response = await providerAPI.createService(serviceData)
-            
+
             if (response.service) {
                 setServices([...services, response.service])
                 setShowServiceModal(false)
@@ -201,7 +323,7 @@ export const ProviderDashboard = () => {
 
     if (isLoading) {
         return (
-            <div className="d-flex justify-content-center align-items-center" style={{minHeight: "100vh"}}>
+            <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
                 <div className="spinner-border text-primary" role="status">
                     <span className="visually-hidden">Loading...</span>
                 </div>
@@ -216,7 +338,7 @@ export const ProviderDashboard = () => {
                     <div className="col-md-3 col-lg-2 sidebar bg-light p-3">
                         <ul className="nav flex-column">
                             <li className="nav-item">
-                                <button 
+                                <button
                                     className={`nav-link ${activeTab === "overview" ? "active" : ""}`}
                                     onClick={() => setActiveTab("overview")}
                                 >
@@ -224,7 +346,7 @@ export const ProviderDashboard = () => {
                                 </button>
                             </li>
                             <li className="nav-item">
-                                <button 
+                                <button
                                     className={`nav-link ${activeTab === "services" ? "active" : ""}`}
                                     onClick={() => setActiveTab("services")}
                                 >
@@ -232,15 +354,28 @@ export const ProviderDashboard = () => {
                                 </button>
                             </li>
                             <li className="nav-item">
-                                <button 
-                                    className={`nav-link ${activeTab === "bookings" ? "active" : ""}`}
+                                <button
+                                    className={`nav-link position-relative ${activeTab === "bookings" ? "active" : ""}`}
                                     onClick={() => setActiveTab("bookings")}
                                 >
                                     📅 Bookings
                                 </button>
                             </li>
                             <li className="nav-item">
-                                <button 
+                                <button
+                                    className={`nav-link position-relative ${activeTab === "messages" ? "active" : ""}`}
+                                    onClick={() => setActiveTab("messages")}
+                                >
+                                    💬 Messages
+                                    {unreadCount > 0 && (
+                                        <span className="badge bg-danger rounded-pill ms-2">
+                                            {unreadCount}
+                                        </span>
+                                    )}
+                                </button>
+                            </li>
+                            <li className="nav-item">
+                                <button
                                     className={`nav-link ${activeTab === "earnings" ? "active" : ""}`}
                                     onClick={() => setActiveTab("earnings")}
                                 >
@@ -248,7 +383,7 @@ export const ProviderDashboard = () => {
                                 </button>
                             </li>
                             <li className="nav-item">
-                                <button 
+                                <button
                                     className={`nav-link ${activeTab === "profile" ? "active" : ""}`}
                                     onClick={() => setActiveTab("profile")}
                                 >
@@ -262,7 +397,7 @@ export const ProviderDashboard = () => {
                         {activeTab === "overview" && (
                             <div>
                                 <h2 className="mb-4">Dashboard Overview</h2>
-                              
+
                                 <div className="row g-3 mb-4">
                                     <div className="col-md-3">
                                         <div className="card stat-card">
@@ -352,7 +487,7 @@ export const ProviderDashboard = () => {
                             <div>
                                 <div className="d-flex justify-content-between align-items-center mb-4">
                                     <h2>My Services</h2>
-                                    <button 
+                                    <button
                                         className="btn btn-primary"
                                         onClick={() => setShowServiceModal(true)}
                                     >
@@ -364,7 +499,7 @@ export const ProviderDashboard = () => {
                                     <div className="card text-center p-5">
                                         <h4>No services yet</h4>
                                         <p className="text-muted">Start by adding your first service</p>
-                                        <button 
+                                        <button
                                             className="btn btn-primary"
                                             onClick={() => setShowServiceModal(true)}
                                         >
@@ -393,7 +528,7 @@ export const ProviderDashboard = () => {
                                                             </span>
                                                             <div className="btn-group btn-group-sm">
                                                                 <button className="btn btn-outline-primary">Edit</button>
-                                                                <button 
+                                                                <button
                                                                     className="btn btn-outline-danger"
                                                                     onClick={() => handleDeleteService(service.id)}
                                                                 >
@@ -413,7 +548,7 @@ export const ProviderDashboard = () => {
                         {activeTab === "bookings" && (
                             <div>
                                 <h2 className="mb-4">Bookings Management</h2>
-                                
+
                                 <div className="btn-group mb-4" role="group">
                                     <button className="btn btn-outline-primary active">All</button>
                                     <button className="btn btn-outline-primary">Pending</button>
@@ -476,10 +611,177 @@ export const ProviderDashboard = () => {
                             </div>
                         )}
 
+                        {activeTab === "messages" && (
+                            <div>
+                                <h2 className="mb-4">Customer Messages</h2>
+
+                                {newMessageAlert && (
+                                    <div
+                                        className="alert alert-info alert-dismissible fade show d-flex align-items-center"
+                                        role="alert"
+                                        style={{
+                                            backgroundColor: '#e7f3ff',
+                                            borderLeft: '4px solid #2196F3',
+                                            borderRadius: '4px'
+                                        }}
+                                    >
+                                        <span style={{ fontSize: '1.5rem', marginRight: '12px' }}>🔔</span>
+                                        <div>
+                                            <strong>{newMessageAlert.message}</strong>
+                                            <p className="mb-0 mt-1 text-muted small">
+                                                You have {newMessageAlert.count} new unread message{newMessageAlert.count !== 1 ? 's' : ''}
+                                            </p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            className="btn-close ms-auto"
+                                            onClick={() => setNewMessageAlert(null)}
+                                            aria-label="Close"
+                                        ></button>
+                                    </div>
+                                )}
+
+                                <div className="row g-3">
+                                    <div className="col-md-4">
+                                        <div className="card">
+                                            <div className="card-header bg-primary text-white">
+                                                <h5 className="mb-0">Conversations</h5>
+                                            </div>
+                                            <div className="card-body p-0" style={{ maxHeight: '500px', overflowY: 'auto' }}>
+                                                {messages.length === 0 ? (
+                                                    <p className="p-3 text-muted mb-0">No messages yet</p>
+                                                ) : (
+                                                    <div className="list-group list-group-flush">
+                                                        {[...new Map(messages.map(msg => [msg.customerId, msg])).values()].map((msg) => {
+                                                            const hasUnread = messages.filter(m => m.customerId === msg.customerId && !m.isRead && m.senderType === 'customer').length > 0;
+                                                            return (
+                                                                <button
+                                                                    key={msg.customerId}
+                                                                    className={`list-group-item list-group-item-action ${selectedConversation?.customerId === msg.customerId ? 'active' : ''} ${hasUnread ? 'bg-danger-light border-danger' : ''}`}
+                                                                    onClick={() => {
+                                                                        setSelectedConversation(msg);
+                                                                        // Mark all messages from this customer as read
+                                                                        const updatedMessages = messages.map(m =>
+                                                                            m.customerId === msg.customerId && m.senderType === 'customer'
+                                                                                ? { ...m, isRead: true }
+                                                                                : m
+                                                                        );
+                                                                        setMessages(updatedMessages);
+                                                                        // Update unread count
+                                                                        const newUnreadCount = updatedMessages.filter(m => !m.isRead && m.senderType === 'customer').length;
+                                                                        setUnreadCount(newUnreadCount);
+                                                                    }}
+                                                                    style={hasUnread ? { backgroundColor: '#ffe6e6', borderLeft: '4px solid #dc3545' } : {}}
+                                                                >
+                                                                    <div className="d-flex justify-content-between align-items-center">
+                                                                        <div className="text-start">
+                                                                            <h6 className={`mb-1 ${hasUnread ? 'fw-bold text-danger' : ''}`}>{msg.customerName}</h6>
+                                                                            <small className={hasUnread ? 'text-danger fw-bold' : 'text-muted'}>
+                                                                                {hasUnread && (
+                                                                                    <span className="badge bg-danger">new</span>
+                                                                                )}
+                                                                            </small>
+                                                                        </div>
+                                                                        <button
+                                                                            type="button"
+                                                                            className="btn btn-sm btn-link text-danger"
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                handleDeleteConversation(msg.customerId);
+                                                                            }}
+                                                                            title="Delete conversation"
+                                                                        >
+                                                                            🗑️
+                                                                        </button>
+                                                                    </div>
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="col-md-8">
+                                        {selectedConversation ? (
+                                            <div className="card">
+                                                <div className="card-header bg-info text-white">
+                                                    <h5 className="mb-0">Chat with {selectedConversation.customerName}</h5>
+                                                </div>
+                                                <div className="card-body" style={{ maxHeight: '400px', overflowY: 'auto', backgroundColor: '#f8f9fa' }}>
+                                                    {messages.filter(msg => msg.customerId === selectedConversation.customerId).map((msg) => (
+                                                        <div
+                                                            key={msg.id}
+                                                            className={`d-flex mb-3 ${msg.senderType === 'provider' ? 'justify-content-end' : 'justify-content-start'}`}
+                                                        >
+                                                            <div
+                                                                className={`p-2 rounded ${msg.senderType === 'provider' ? 'bg-primary text-white' : 'bg-white border'}`}
+                                                                style={{ maxWidth: '70%' }}
+                                                            >
+                                                                <p className="mb-1">{msg.message}</p>
+                                                                <div className="d-flex justify-content-between align-items-center gap-2">
+                                                                    <small className={msg.senderType === 'provider' ? 'text-white-50' : 'text-muted'}>
+                                                                        {new Date(msg.createdAt).toLocaleTimeString()}
+                                                                    </small>
+                                                                    <button
+                                                                        type="button"
+                                                                        className="btn btn-sm btn-link p-0"
+                                                                        style={{ color: msg.senderType === 'provider' ? '#fff' : '#dc3545', fontSize: '0.75rem' }}
+                                                                        onClick={() => handleDeleteMessage(msg.id)}
+                                                                        title="Delete message"
+                                                                    >
+                                                                        ✕
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                                <div className="card-footer">
+                                                    <form onSubmit={async (e) => {
+                                                        e.preventDefault()
+                                                        if (messageInput.trim()) {
+                                                            try {
+                                                                await providerAPI.sendMessage(selectedConversation.customerId, messageInput)
+                                                                setMessageInput('')
+                                                                await fetchMessages()
+                                                            } catch (error) {
+                                                                console.error('Error sending message:', error)
+                                                            }
+                                                        }
+                                                    }}>
+                                                        <div className="input-group">
+                                                            <input
+                                                                type="text"
+                                                                className="form-control"
+                                                                placeholder="Type your message..."
+                                                                value={messageInput}
+                                                                onChange={(e) => setMessageInput(e.target.value)}
+                                                            />
+                                                            <button type="submit" className="btn btn-primary">
+                                                                Send
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="card">
+                                                <div className="card-body text-center text-muted">
+                                                    <p>Select a conversation to view messages</p>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         {activeTab === "earnings" && (
                             <div>
                                 <h2 className="mb-4">Earnings</h2>
-                                
+
                                 <div className="row g-3 mb-4">
                                     <div className="col-md-4">
                                         <div className="card">
@@ -521,34 +823,34 @@ export const ProviderDashboard = () => {
                         {activeTab === "profile" && (
                             <div>
                                 <h2 className="mb-4">Provider Profile</h2>
-                                
+
                                 <div className="card">
                                     <div className="card-body">
                                         <form onSubmit={handleProfileUpdate}>
                                             <div className="row g-3">
                                                 <div className="col-md-6">
                                                     <label className="form-label">Business Name</label>
-                                                    <input 
-                                                        type="text" 
-                                                        className="form-control" 
+                                                    <input
+                                                        type="text"
+                                                        className="form-control"
                                                         value={profileForm.businessName}
-                                                        onChange={(e) => setProfileForm({...profileForm, businessName: e.target.value})}
+                                                        onChange={(e) => setProfileForm({ ...profileForm, businessName: e.target.value })}
                                                     />
                                                 </div>
                                                 <div className="col-md-6">
                                                     <label className="form-label">Contact Person</label>
-                                                    <input 
-                                                        type="text" 
-                                                        className="form-control" 
+                                                    <input
+                                                        type="text"
+                                                        className="form-control"
                                                         value={profileForm.name}
-                                                        onChange={(e) => setProfileForm({...profileForm, name: e.target.value})}
+                                                        onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
                                                     />
                                                 </div>
                                                 <div className="col-md-6">
                                                     <label className="form-label">Email</label>
-                                                    <input 
-                                                        type="email" 
-                                                        className="form-control" 
+                                                    <input
+                                                        type="email"
+                                                        className="form-control"
                                                         value={providerData?.email}
                                                         disabled
                                                         readOnly
@@ -557,11 +859,11 @@ export const ProviderDashboard = () => {
                                                 </div>
                                                 <div className="col-md-6">
                                                     <label className="form-label">Phone</label>
-                                                    <input 
-                                                        type="tel" 
-                                                        className="form-control" 
+                                                    <input
+                                                        type="tel"
+                                                        className="form-control"
                                                         value={profileForm.phone}
-                                                        onChange={(e) => setProfileForm({...profileForm, phone: e.target.value})}
+                                                        onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
                                                         placeholder="(123) 456-7890"
                                                     />
                                                 </div>
@@ -575,22 +877,22 @@ export const ProviderDashboard = () => {
 
                                                 <div className="col-12">
                                                     <label className="form-label">Street Address</label>
-                                                    <input 
-                                                        type="text" 
-                                                        className="form-control" 
+                                                    <input
+                                                        type="text"
+                                                        className="form-control"
                                                         value={profileForm.address}
-                                                        onChange={(e) => setProfileForm({...profileForm, address: e.target.value})}
+                                                        onChange={(e) => setProfileForm({ ...profileForm, address: e.target.value })}
                                                         placeholder="123 Main Street"
                                                     />
                                                 </div>
 
                                                 <div className="col-md-6">
                                                     <label className="form-label">City *</label>
-                                                    <input 
-                                                        type="text" 
-                                                        className="form-control" 
+                                                    <input
+                                                        type="text"
+                                                        className="form-control"
                                                         value={profileForm.city}
-                                                        onChange={(e) => setProfileForm({...profileForm, city: e.target.value})}
+                                                        onChange={(e) => setProfileForm({ ...profileForm, city: e.target.value })}
                                                         placeholder="Pittsburgh"
                                                         required
                                                     />
@@ -598,11 +900,11 @@ export const ProviderDashboard = () => {
 
                                                 <div className="col-md-3">
                                                     <label className="form-label">State *</label>
-                                                    <input 
-                                                        type="text" 
-                                                        className="form-control" 
+                                                    <input
+                                                        type="text"
+                                                        className="form-control"
                                                         value={profileForm.state}
-                                                        onChange={(e) => setProfileForm({...profileForm, state: e.target.value.toUpperCase()})}
+                                                        onChange={(e) => setProfileForm({ ...profileForm, state: e.target.value.toUpperCase() })}
                                                         placeholder="PA"
                                                         maxLength={2}
                                                         required
@@ -611,11 +913,11 @@ export const ProviderDashboard = () => {
 
                                                 <div className="col-md-3">
                                                     <label className="form-label">Zip Code *</label>
-                                                    <input 
-                                                        type="text" 
-                                                        className="form-control" 
+                                                    <input
+                                                        type="text"
+                                                        className="form-control"
                                                         value={profileForm.zipCode}
-                                                        onChange={(e) => setProfileForm({...profileForm, zipCode: e.target.value})}
+                                                        onChange={(e) => setProfileForm({ ...profileForm, zipCode: e.target.value })}
                                                         placeholder="15213"
                                                         maxLength={5}
                                                         required
@@ -630,12 +932,12 @@ export const ProviderDashboard = () => {
 
                                                 <div className="col-md-6">
                                                     <label className="form-label">Latitude (Optional)</label>
-                                                    <input 
-                                                        type="number" 
+                                                    <input
+                                                        type="number"
                                                         step="any"
-                                                        className="form-control" 
+                                                        className="form-control"
                                                         value={profileForm.latitude}
-                                                        onChange={(e) => setProfileForm({...profileForm, latitude: e.target.value})}
+                                                        onChange={(e) => setProfileForm({ ...profileForm, latitude: e.target.value })}
                                                         placeholder="40.4406"
                                                     />
                                                     <small className="text-muted">Example: 40.4406 (Pittsburgh)</small>
@@ -643,12 +945,12 @@ export const ProviderDashboard = () => {
 
                                                 <div className="col-md-6">
                                                     <label className="form-label">Longitude (Optional)</label>
-                                                    <input 
-                                                        type="number" 
+                                                    <input
+                                                        type="number"
                                                         step="any"
-                                                        className="form-control" 
+                                                        className="form-control"
                                                         value={profileForm.longitude}
-                                                        onChange={(e) => setProfileForm({...profileForm, longitude: e.target.value})}
+                                                        onChange={(e) => setProfileForm({ ...profileForm, longitude: e.target.value })}
                                                         placeholder="-79.9959"
                                                     />
                                                     <small className="text-muted">Example: -79.9959 (Pittsburgh)</small>
@@ -656,11 +958,11 @@ export const ProviderDashboard = () => {
 
                                                 <div className="col-12">
                                                     <label className="form-label">About Your Business</label>
-                                                    <textarea 
-                                                        className="form-control" 
+                                                    <textarea
+                                                        className="form-control"
                                                         rows="4"
                                                         value={profileForm.description}
-                                                        onChange={(e) => setProfileForm({...profileForm, description: e.target.value})}
+                                                        onChange={(e) => setProfileForm({ ...profileForm, description: e.target.value })}
                                                         placeholder="Tell customers about your business..."
                                                     ></textarea>
                                                 </div>
@@ -678,13 +980,13 @@ export const ProviderDashboard = () => {
                         )}
 
                         {showServiceModal && (
-                            <div className="modal show d-block" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
+                            <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
                                 <div className="modal-dialog">
                                     <div className="modal-content">
                                         <div className="modal-header">
                                             <h5 className="modal-title">Add New Service</h5>
-                                            <button 
-                                                type="button" 
+                                            <button
+                                                type="button"
                                                 className="btn-close"
                                                 onClick={() => setShowServiceModal(false)}
                                             ></button>
@@ -697,7 +999,7 @@ export const ProviderDashboard = () => {
                                                         type="text"
                                                         className="form-control"
                                                         value={newService.name}
-                                                        onChange={(e) => setNewService({...newService, name: e.target.value})}
+                                                        onChange={(e) => setNewService({ ...newService, name: e.target.value })}
                                                         required
                                                     />
                                                 </div>
@@ -707,7 +1009,7 @@ export const ProviderDashboard = () => {
                                                         className="form-control"
                                                         rows="3"
                                                         value={newService.description}
-                                                        onChange={(e) => setNewService({...newService, description: e.target.value})}
+                                                        onChange={(e) => setNewService({ ...newService, description: e.target.value })}
                                                     ></textarea>
                                                 </div>
                                                 <div className="mb-3">
@@ -715,7 +1017,7 @@ export const ProviderDashboard = () => {
                                                     <select
                                                         className="form-select"
                                                         value={newService.category}
-                                                        onChange={(e) => setNewService({...newService, category: e.target.value})}
+                                                        onChange={(e) => setNewService({ ...newService, category: e.target.value })}
                                                         required
                                                     >
                                                         <option value="pets">🐾 Pet Services</option>
@@ -731,7 +1033,7 @@ export const ProviderDashboard = () => {
                                                         step="0.01"
                                                         className="form-control"
                                                         value={newService.price}
-                                                        onChange={(e) => setNewService({...newService, price: e.target.value})}
+                                                        onChange={(e) => setNewService({ ...newService, price: e.target.value })}
                                                         required
                                                     />
                                                 </div>
@@ -741,13 +1043,13 @@ export const ProviderDashboard = () => {
                                                         type="number"
                                                         className="form-control"
                                                         value={newService.duration}
-                                                        onChange={(e) => setNewService({...newService, duration: e.target.value})}
+                                                        onChange={(e) => setNewService({ ...newService, duration: e.target.value })}
                                                     />
                                                 </div>
                                             </div>
                                             <div className="modal-footer">
-                                                <button 
-                                                    type="button" 
+                                                <button
+                                                    type="button"
                                                     className="btn btn-secondary"
                                                     onClick={() => setShowServiceModal(false)}
                                                 >
