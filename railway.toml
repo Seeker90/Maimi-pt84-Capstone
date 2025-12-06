@@ -1,11 +1,8 @@
 [build]
 builder = "nixpacks"
-buildCommand = "npm run build && pip install -r requirements.txt"
+buildCommand = "npm run build"
 
 [deploy]
-startCommand = "cd src && gunicorn wsgi:app"
+startCommand = "pip install -r requirements.txt && cd src && gunicorn wsgi:app"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 10
-
-[providers]
-languages = ["nodejs", "python"]
