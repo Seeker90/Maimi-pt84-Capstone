@@ -31,8 +31,11 @@ COPY --from=builder /app/dist ./dist
 # Copy Flask app
 COPY src/ src/
 
+# Copy migrations
+COPY src/migrations/ src/migrations/
+
 # Expose port
 EXPOSE 8000
 
-# Run Flask app with gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "src.wsgi:app"]
+# Run migrations and start gunicorn
+CMD sh -c "cd /app/src && python -m flask db upgrade && gunicorn --bind 0.0.0.0:8000 wsgi:app"
