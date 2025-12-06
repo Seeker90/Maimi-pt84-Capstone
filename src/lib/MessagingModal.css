@@ -1,0 +1,37 @@
+.modal-backdrop-custom {
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1050;
+}
+
+.messaging-modal-container {
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+}
+
+.messages-area {
+    min-height: 300px;
+    max-height: 400px;
+}
+
+.message-sent {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.btn-send {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.btn-send:hover:not(:disabled) {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.btn-send:disabled {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    opacity: 0.6;
+}
