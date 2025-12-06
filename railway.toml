@@ -1,7 +1,12 @@
+cat > railway.toml << 'EOF'
 [build]
 builder = "dockerfile"
 dockerfile = "./Dockerfile"
-buildArgs = { VITE_BACKEND_URL = "https://full-stack-production-5ab7.up.railway.app", VITE_MAPBOX_API_KEY = "pk.eyJ1Ijoic2Vla2VyOTAiLCJhIjoiY21pOXJjdmE5MGR2ZTJqcTB0dHgzMGl3ZiJ9.GTINByRXftZnQpxJDqcBfg", VITE_BASENAME = "/" }
+
+[build.buildArgs]
+VITE_BACKEND_URL = "https://full-stack-production-5ab7.up.railway.app"
+VITE_MAPBOX_API_KEY = "pk.eyJ1Ijoic2Vla2VyOTAiLCJhIjoiY21pOXJjdmE5MGR2ZTJqcTB0dHgzMGl3ZiJ9.GTINByRXftZnQpxJDqcBfg"
+VITE_BASENAME = "/"
 
 [deploy]
 startCommand = "gunicorn --bind 0.0.0.0:8000 src.wsgi:app"
@@ -10,3 +15,4 @@ restartPolicyMaxRetries = 10
 
 [[deploy.preDeploySteps]]
 command = "cd /app/src && python -m flask db upgrade"
+EOF
