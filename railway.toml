@@ -4,3 +4,8 @@ buildCommand = "npm run build && pip install -r requirements.txt"
 
 [deploy]
 startCommand = "cd src && gunicorn wsgi:app"
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 10
+
+[providers]
+languages = ["nodejs", "python"]
