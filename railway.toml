@@ -8,6 +8,5 @@ VITE_MAPBOX_API_KEY = "pk.eyJ1Ijoic2Vla2VyOTAiLCJhIjoiY21pOXJjdmE5MGR2ZTJqcTB0dH
 VITE_BASENAME = "/"
 
 [deploy]
-startCommand = "cd /app/src && python -m flask db upgrade && gunicorn --bind 0.0.0.0:8000 wsgi:app"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 10
