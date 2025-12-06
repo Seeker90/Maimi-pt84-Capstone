@@ -32,7 +32,8 @@ allowed_origins = [
     "http://localhost:3000",       # Local alternative port
     "http://localhost:3001",       # Local Flask port
     "http://localhost:8000",       # Local Flask gunicorn
-    "https://maimi-pt84-capstone-production.up.railway.app",  # Production frontend
+    "https://full-stack-production-5ab7.up.railway.app",  # Production Railway
+    "https://maimi-pt84-capstone-production.up.railway.app",  # Old Render URL
 ]
 
 # Add production frontend URL if set in environment
