@@ -1,10 +1,18 @@
 # Stage 1: Build React with Node.js
 FROM node:22-alpine AS builder
+
+# Declare build args
+ARG VITE_BACKEND_URL
+ARG VITE_MAPBOX_API_KEY
+ARG VITE_BASENAME
+
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
-RUN npm run build
+
+# Pass build args as environment variables for Vite
+RUN VITE_BACKEND_URL=${VITE_BACKEND_URL} VITE_MAPBOX_API_KEY=${VITE_MAPBOX_API_KEY} VITE_BASENAME=${VITE_BASENAME} npm run build
 
 # Stage 2: Final image with Python
 FROM python:3.11-slim
