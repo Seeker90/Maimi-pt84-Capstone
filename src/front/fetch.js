@@ -1,6 +1,3 @@
-// src/api/fetch.js - Updated for Railway deployment
-
-// Get backend URL from environment variable
 const API_URL = import.meta.env.VITE_BACKEND_URL;
 
 if (!API_URL) {
@@ -23,10 +20,6 @@ const getAuthHeaders = () => {
     "Content-Type": "application/json",
   };
 };
-
-// ============================================
-// AUTHENTICATION
-// ============================================
 
 export const login = async (email, password, role) => {
   const options = {
@@ -80,10 +73,6 @@ export const authAPI = {
     return response;
   },
 };
-
-// ============================================
-// PROVIDER API
-// ============================================
 
 export const providerAPI = {
   getProfile: async () => {
@@ -244,10 +233,6 @@ export const providerAPI = {
     return response.json();
   },
 };
-
-// ============================================
-// CUSTOMER API
-// ============================================
 
 export const customerAPI = {
   createBooking: async (serviceId) => {
