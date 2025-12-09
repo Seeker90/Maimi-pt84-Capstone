@@ -27,17 +27,18 @@ export const Navbar = () => {
     };
 
     return (
-        <nav className="navbar navbar-light bg-white border-bottom border-dark border-2 px-4">
+        <nav className="navbar border-bottom border-dark border-2 p-0" style={{ backgroundColor: 'rgb(8, 57, 75)' }}>
             <div className="container-fluid">
                 <Link to="/" className="text-decoration-none">
-                    <span className="navbar-brand px-3 py-2 fw-bold mb-0">
-                       <img 
-                        className="logo" 
-                        style={{ width: '80px', height: '80px' }}
-                        src={homeCallsImg} 
-                        alt="HomeCalls Logo"
+                    <span className="navbar-brand px-3 py-2 fw-bold mb-0" style={{ color: 'white' }}>
+                        <img
+                            className="logo"
+                            style={{ width: '80px', height: '80px' }}
+                            src={homeCallsImg}
+                            alt="HomeCalls Logo"
                         />
-                     </span>
+                        HomeCalls
+                    </span>
                 </Link>
                 <div className="ml-auto gap-3">
                     {!isLoggedIn ? (
@@ -60,8 +61,8 @@ export const Navbar = () => {
                                     Profile
                                 </button>
                             </Link>
-                            <button 
-                                className="btn btn-outline-dark px-4" 
+                            <button
+                                className="btn btn-outline-dark px-4"
                                 onClick={handleLogout}
                             >
                                 Logout

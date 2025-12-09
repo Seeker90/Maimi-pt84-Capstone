@@ -2,7 +2,7 @@
   box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
   padding: 1rem 2rem !important;
   backdrop-filter: blur(10px);
-  background-color: rgba(255, 255, 255, 0.95) !important;
+  background-color: rgb(8, 57, 75) !important;
 }
 
 .navbar-brand {
@@ -34,7 +34,7 @@
 }
 
 .navbar .btn::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -47,7 +47,7 @@
 }
 
 .navbar .btn:hover::before {
-  width: 100%; 
+  width: 100%;
 }
 
 .navbar .btn-outline-dark:nth-of-type(1) {
@@ -60,7 +60,11 @@
 .navbar .btn-outline-dark:nth-of-type(1):hover {
   transform: translateY(-3px);
   box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%); /* Reverse gradient */
+  background: linear-gradient(
+    135deg,
+    #764ba2 0%,
+    #667eea 100%
+  ); /* Reverse gradient */
 }
 
 /* ================================
@@ -140,16 +144,16 @@
   .navbar {
     padding: 0.75rem 1rem !important;
   }
-  
+
   .navbar .btn {
     padding: 0.5rem 1.25rem !important;
     font-size: 0.85rem;
   }
-  
+
   .ml-auto {
     gap: 0.5rem;
   }
-  
+
   .logo {
     width: 60px !important;
     height: 60px !important;

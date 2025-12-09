@@ -42,10 +42,15 @@ else:
 
 jwt_secret = os.environ.get('JWT_SECRET_KEY') or os.environ.get('FLASK_SECRET')
 if not jwt_secret:
-    raise ValueError(
-        "JWT_SECRET_KEY environment variable is not set. "
-        "This is required for authentication. Set it in Railway Variables."
-    )
+    if ENV == "production":
+        raise ValueError(
+            "JWT_SECRET_KEY environment variable is not set. "
+            "This is required for authentication. Set it in Railway Variables."
+        )
+    else:
+        # In development, use a default key but warn the user
+        print("⚠️  Warning: JWT_SECRET_KEY not set. Using insecure default for development only.")
+        jwt_secret = "dev-secret-key-change-in-production"
 
 app.config["JWT_SECRET_KEY"] = jwt_secret
 jwt = JWTManager(app)
@@ -66,9 +71,11 @@ setup_commands(app)
 
 app.register_blueprint(api, url_prefix='/api')
 
+
 @app.errorhandler(APIException)
 def handle_invalid_usage(error):
     return jsonify(error.to_dict()), error.status_code
+
 
 @app.route('/health', methods=['GET'])
 def health_check():
@@ -78,6 +85,7 @@ def health_check():
         "message": "Backend is running",
         "environment": ENV
     }), 200
+
 
 @app.route('/', methods=['GET'])
 def root():
@@ -92,6 +100,7 @@ def root():
             "docs": "https://backend-production-eafd.up.railway.app/api/swagger",
             "status": "running"
         }), 200
+
 
 if __name__ == '__main__':
     # Railway uses PORT 8080 by default
